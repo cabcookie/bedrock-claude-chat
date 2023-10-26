@@ -90,7 +90,7 @@ def _get_table_client(user_id: str, table_name: str):
         aws_secret_access_key=credentials["SecretAccessKey"],
         aws_session_token=credentials["SessionToken"],
     )
-    table = dynamodb.Table(TABLE_NAME)
+    table = dynamodb.Table(table_name)
     return table
 
 

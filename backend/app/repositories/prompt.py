@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 from datetime import datetime
 from decimal import Decimal as decimal
@@ -9,6 +10,8 @@ from app.repositories.model import PromptModel
 from boto3.dynamodb.conditions import Key
 
 TABLE_NAME = os.environ.get("PROMPT_TABLE", "")
+
+logger = logging.getLogger(__name__)
 
 
 def _compose_prompt_id(user_id: str, conversation_id: str):
@@ -21,6 +24,7 @@ def _decompose_prompt_id(conv_id: str):
 
 
 def store_prompt(user_id: str, prompt: PromptModel):
+    logger.debug(f"store_prompt: {prompt.model_dump_json()}")
     table = _get_table_client(user_id, TABLE_NAME)
     item = {
         "UserId": user_id,
@@ -33,6 +37,7 @@ def store_prompt(user_id: str, prompt: PromptModel):
 
 
 def find_prompt_by_user_id(user_id: str) -> list[PromptModel]:
+    logger.debug(f"Finding prompts for user: {user_id}")
     table = _get_table_client(user_id, TABLE_NAME)
     response = table.query(KeyConditionExpression=Key("UserId").eq(user_id))
 
@@ -46,10 +51,13 @@ def find_prompt_by_user_id(user_id: str) -> list[PromptModel]:
         for item in response["Items"]
     ]
     prompts.sort(key=lambda x: x.last_used_at, reverse=True)
+
+    logger.debug(f"Found prompts: {prompts}")
     return prompts
 
 
 def find_prompt_by_prompt_id(user_id: str, prompt_id: str) -> PromptModel:
+    logger.debug(f"Finding prompt: {prompt_id}")
     table = _get_table_client(user_id, TABLE_NAME)
     response = table.query(
         IndexName="PromptIdIndex",
@@ -67,11 +75,12 @@ def find_prompt_by_prompt_id(user_id: str, prompt_id: str) -> PromptModel:
         body=item["Body"],
         last_used_at=float(item["LastUsedAt"]),
     )
-
+    logger.debug(f"Found prompt: {prompt.model_dump_json()}")
     return prompt
 
 
 def update_prompt_last_used_at(user_id: str, prompt_id: str, last_used_at: float):
+    logger.debug(f"Updating prompt: {prompt_id}")
     table = _get_table_client(user_id, TABLE_NAME)
     response = table.update_item(
         Key={"UserId": user_id, "PromptId": _compose_prompt_id(user_id, prompt_id)},
@@ -82,6 +91,7 @@ def update_prompt_last_used_at(user_id: str, prompt_id: str, last_used_at: float
 
 
 def delete_prompt_by_prompt_id(user_id: str, prompt_id: str):
+    logger.debug(f"Deleting prompt: {prompt_id}")
     table = _get_table_client(user_id, TABLE_NAME)
 
     response = table.query(

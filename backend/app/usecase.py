@@ -8,8 +8,14 @@ from app.repositories.conversation import (
     find_conversation_by_id,
     store_conversation,
 )
-from app.repositories.model import ContentModel, ConversationModel, MessageModel
-from app.route_schema import ChatInput, ChatOutput, Content, MessageOutput
+from app.repositories.model import (
+    ContentModel,
+    ConversationModel,
+    MessageModel,
+    PromptModel,
+)
+from app.repositories.prompt import store_prompt
+from app.route_schema import ChatInput, ChatOutput, Content, MessageOutput, PromptInput
 from app.utils import get_buffer_string
 from ulid import ULID
 
@@ -200,3 +206,15 @@ def propose_conversation_title(
     reply_txt = invoke(prompt=prompt, model=model)
     reply_txt = reply_txt.replace("\n", "")
     return reply_txt
+
+
+def save_prompt(user_id: str, prompt_input: PromptInput):
+    store_prompt(
+        user_id,
+        PromptModel(
+            user_id=user_id,
+            prompt_id=prompt_input.prompt_id,
+            last_used_at=datetime.now().timestamp(),
+            body=prompt_input.body,
+        ),
+    )

@@ -10,6 +10,11 @@ class BaseSchema(BaseModel):
         populate_by_name = True
 
 
+class User(BaseSchema):
+    id: str
+    name: str
+
+
 class Content(BaseSchema):
     content_type: Literal["text"] = Field(..., description="現在textのみ")
     body: str
@@ -67,6 +72,12 @@ class ProposedTitle(BaseSchema):
     title: str
 
 
-class User(BaseSchema):
-    id: str
-    name: str
+class PromptInput(BaseSchema):
+    prompt_id: str
+    body: str
+
+
+class PromptOutput(BaseSchema):
+    prompt_id: str
+    body: str
+    last_used_at: float
