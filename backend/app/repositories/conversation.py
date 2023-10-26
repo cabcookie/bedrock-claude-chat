@@ -9,7 +9,7 @@ from app.repositories.model import ContentModel, ConversationModel, MessageModel
 from boto3.dynamodb.conditions import Key
 
 DDB_ENDPOINT_URL = os.environ.get("DDB_ENDPOINT_URL")
-TABLE_NAME = os.environ.get("TABLE_NAME", "")
+TABLE_NAME = os.environ.get("CONVERSATION_TABLE", "")
 ACCOUNT = os.environ.get("ACCOUNT", "")
 REGION = os.environ.get("REGION", "ap-northeast-1")
 TABLE_ACCESS_ROLE_ARN = os.environ.get("TABLE_ACCESS_ROLE_ARN", "")
@@ -31,7 +31,7 @@ def _decompose_conv_id(conv_id: str):
     return conv_id.split("_")[1]
 
 
-def _get_table_client(user_id: str):
+def _get_table_client(user_id: str, table_name: str):
     """Get a DynamoDB table client with row level access
     Ref: https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_examples_dynamodb_items.html
     """
@@ -47,7 +47,7 @@ def _get_table_client(user_id: str):
             )
         else:
             dynamodb = boto3.resource("dynamodb")
-        return dynamodb.Table(TABLE_NAME)
+        return dynamodb.Table(table_name)
 
     policy_document = {
         "Statement": [
@@ -67,8 +67,8 @@ def _get_table_client(user_id: str):
                     "dynamodb:UpdateItem",
                 ],
                 "Resource": [
-                    f"arn:aws:dynamodb:{REGION}:{ACCOUNT}:table/{TABLE_NAME}",
-                    f"arn:aws:dynamodb:{REGION}:{ACCOUNT}:table/{TABLE_NAME}/index/*",
+                    f"arn:aws:dynamodb:{REGION}:{ACCOUNT}:table/{table_name}",
+                    f"arn:aws:dynamodb:{REGION}:{ACCOUNT}:table/{table_name}/index/*",
                 ],
                 "Condition": {
                     # Allow access to items with the same partition key as the user id
@@ -96,7 +96,7 @@ def _get_table_client(user_id: str):
 
 def store_conversation(user_id: str, conversation: ConversationModel):
     logger.debug(f"Storing conversation: {conversation.model_dump_json()}")
-    table = _get_table_client(user_id)
+    table = _get_table_client(user_id, TABLE_NAME)
     response = table.put_item(
         Item={
             "UserId": user_id,
@@ -114,7 +114,7 @@ def store_conversation(user_id: str, conversation: ConversationModel):
 
 def find_conversation_by_user_id(user_id: str) -> list[ConversationModel]:
     logger.debug(f"Finding conversations for user: {user_id}")
-    table = _get_table_client(user_id)
+    table = _get_table_client(user_id, TABLE_NAME)
     response = table.query(KeyConditionExpression=Key("UserId").eq(user_id))
 
     conversations = [
@@ -149,7 +149,7 @@ def find_conversation_by_user_id(user_id: str) -> list[ConversationModel]:
 
 def find_conversation_by_id(user_id: str, conversation_id: str) -> ConversationModel:
     logger.debug(f"Finding conversation: {conversation_id}")
-    table = _get_table_client(user_id)
+    table = _get_table_client(user_id, TABLE_NAME)
     response = table.query(
         IndexName="ConversationIdIndex",
         KeyConditionExpression=Key("ConversationId").eq(
@@ -187,7 +187,7 @@ def find_conversation_by_id(user_id: str, conversation_id: str) -> ConversationM
 
 def delete_conversation_by_id(user_id: str, conversation_id: str):
     logger.debug(f"Deleting conversation: {conversation_id}")
-    table = _get_table_client(user_id)
+    table = _get_table_client(user_id, TABLE_NAME)
 
     # Query the index
     response = table.query(
@@ -215,7 +215,7 @@ def delete_conversation_by_user_id(user_id: str):
     # First, find all conversations for the user
     conversations = find_conversation_by_user_id(user_id)
     if conversations:
-        table = _get_table_client(user_id)
+        table = _get_table_client(user_id, TABLE_NAME)
         responses = []
         for conversation in conversations:
             # Construct key to delete
@@ -233,7 +233,7 @@ def delete_conversation_by_user_id(user_id: str):
 def change_conversation_title(user_id: str, conversation_id: str, new_title: str):
     logger.debug(f"Changing conversation title: {conversation_id}")
     logger.debug(f"New title: {new_title}")
-    table = _get_table_client(user_id)
+    table = _get_table_client(user_id, TABLE_NAME)
 
     # First, we need to find the item using the GSI
     response = table.query(

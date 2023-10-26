@@ -15,7 +15,8 @@ pip install -r ./requirements.txt
 - Configure environment variables
 
 ```
-export TABLE_NAME=BedrockChatStack-DatabaseConversationTablexxxx
+export CONVERSATION_TABLE=BedrockChatStack-DatabaseConversationTablexxxx
+export PROMPT_TABLE=xxxx
 export ACCOUNT=yyyy
 export REGION=ap-northeast-1
 export BEDROCK_REGION=us-east-1
@@ -24,7 +25,8 @@ export BEDROCK_REGION=us-east-1
 - Run unit test
 
 ```
-python tests/test_conversation.py TestConversationRepository
+python tests/test_conversation_repository.py TestConversationRepository
+python tests/test_prompt_repository.py TestConversationRepository
 python tests/test_bedrock.py
 python tests/test_usecase.py
 ```

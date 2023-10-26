@@ -16,7 +16,8 @@ import * as iam from "aws-cdk-lib/aws-iam";
 import * as path from "path";
 
 export interface ApiProps {
-  readonly database: ITable;
+  readonly conversationTable: ITable;
+  readonly promptTable: ITable;
   readonly corsAllowOrigins?: string[];
   readonly auth: Auth;
   readonly bedrockRegion: string;
@@ -29,7 +30,8 @@ export class Api extends Construct {
     super(scope, id);
 
     const {
-      database,
+      conversationTable,
+      promptTable,
       tableAccessRole,
       corsAllowOrigins: allowOrigins = ["*"],
     } = props;
@@ -67,7 +69,8 @@ export class Api extends Construct {
       memorySize: 256,
       timeout: Duration.seconds(30),
       environment: {
-        TABLE_NAME: database.tableName,
+        CONVERSATION_TABLE: conversationTable.tableName,
+        PROMPT_TABLE: promptTable.tableName,
         CORS_ALLOW_ORIGINS: allowOrigins.join(","),
         USER_POOL_ID: props.auth.userPool.userPoolId,
         CLIENT_ID: props.auth.client.userPoolClientId,

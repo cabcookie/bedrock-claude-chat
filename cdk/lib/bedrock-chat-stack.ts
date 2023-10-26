@@ -35,7 +35,8 @@ export class BedrockChatStack extends cdk.Stack {
     const database = new Database(this, "Database");
 
     const backendApi = new Api(this, "BackendApi", {
-      database: database.table,
+      conversationTable: database.conversationTable,
+      promptTable: database.promptTable,
       auth,
       bedrockRegion: props.bedrockRegion,
       tableAccessRole: database.tableAccessRole,
@@ -43,7 +44,7 @@ export class BedrockChatStack extends cdk.Stack {
 
     // For streaming response
     const websocket = new WebSocket(this, "WebSocket", {
-      database: database.table,
+      conversationTable: database.conversationTable,
       tableAccessRole: database.tableAccessRole,
       auth,
       bedrockRegion: props.bedrockRegion,

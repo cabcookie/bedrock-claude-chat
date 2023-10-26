@@ -15,7 +15,7 @@ import { ITable } from "aws-cdk-lib/aws-dynamodb";
 import { CfnRouteResponse } from "aws-cdk-lib/aws-apigatewayv2";
 
 export interface WebSocketProps {
-  readonly database: ITable;
+  readonly conversationTable: ITable;
   readonly auth: Auth;
   readonly bedrockRegion: string;
   readonly tableAccessRole: iam.IRole;
@@ -28,7 +28,7 @@ export class WebSocket extends Construct {
   constructor(scope: Construct, id: string, props: WebSocketProps) {
     super(scope, id);
 
-    const { database, tableAccessRole } = props;
+    const { conversationTable, tableAccessRole } = props;
 
     const topic = new sns.Topic(this, "SnsTopic", {
       displayName: "WebSocketTopic",
@@ -81,7 +81,7 @@ export class WebSocket extends Construct {
         USER_POOL_ID: props.auth.userPool.userPoolId,
         CLIENT_ID: props.auth.client.userPoolClientId,
         BEDROCK_REGION: props.bedrockRegion,
-        TABLE_NAME: database.tableName,
+        CONVERSATION_TABLE: conversationTable.tableName,
         TABLE_ACCESS_ROLE_ARN: tableAccessRole.roleArn,
       },
       role: handlerRole,

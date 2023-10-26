@@ -21,3 +21,10 @@ class ConversationModel(BaseModel):
     title: str
     message_map: dict[str, MessageModel]
     last_message_id: str
+
+
+class PromptModel(BaseModel):
+    user_id: str
+    prompt_id: str
+    last_used_at: float
+    body: str
