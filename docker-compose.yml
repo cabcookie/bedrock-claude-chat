@@ -24,7 +24,8 @@ services:
       - 8000:8000
     environment:
       DDB_ENDPOINT_URL: http://dynamodb-local:8080
-      TABLE_NAME: ConversationTable
+      CONVERSATION_TABLE: ConversationTable
+      PROMPT_TABLE: PromptTable
       # Bedrock 向けの設定
       BEDROCK_REGION: us-east-1
       #AWS_ACCESS_KEY_ID: XXXX
