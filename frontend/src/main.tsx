@@ -9,21 +9,11 @@ import './i18n';
 
 const router = createBrowserRouter([
   {
-    path: '/',
-    element: <App />,
+    path: '/', element: <App />,
     children: [
-      {
-        path: '/',
-        element: <ChatPage />,
-      },
-      {
-        path: '/:conversationId',
-        element: <ChatPage />,
-      },
-      {
-        path: '*',
-        element: <NotFound />,
-      },
+      { path: '/', element: <ChatPage /> },
+      { path: '/:conversationId', element: <ChatPage /> },
+      { path: '*', element: <NotFound /> },
     ],
   },
 ]);
