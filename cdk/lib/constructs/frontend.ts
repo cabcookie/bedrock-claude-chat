@@ -12,7 +12,6 @@ import {
   ViewerCertificate,
 } from "aws-cdk-lib/aws-cloudfront";
 import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
-import { HostedZone } from "aws-cdk-lib/aws-route53";
 import { NodejsBuild } from "deploy-time-build";
 import { Auth } from "./auth";
 
@@ -32,7 +31,6 @@ export interface FrontendProps {
 
 export class Frontend extends Construct {
   readonly cloudFrontWebDistribution: CloudFrontWebDistribution;
-  declare hostedZone: HostedZone;
 
   constructor(scope: Construct, id: string, props: FrontendProps) {
     super(scope, id);

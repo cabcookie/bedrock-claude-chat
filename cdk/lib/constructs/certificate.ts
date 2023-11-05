@@ -1,12 +1,15 @@
 import { Construct } from "constructs";
 import { Certificate, CertificateValidation } from "aws-cdk-lib/aws-certificatemanager";
+import { CfnOutput } from "aws-cdk-lib";
 
 export interface DomainCertificateProps {
   readonly domainAlias: string;
 }
 
 export class DomainCertificate extends Construct {
+  public readonly certificateArn: CfnOutput;
   readonly domainCertificate: Certificate;
+
   constructor(scope: Construct, id: string, props: DomainCertificateProps) {
     super(scope, id);
 
@@ -22,5 +25,8 @@ export class DomainCertificate extends Construct {
     });
 
     this.domainCertificate = certificate;
+    this.certificateArn = new CfnOutput(this, "CertificateArn", {
+      value: certificate.certificateArn,
+    });
   }
 }
