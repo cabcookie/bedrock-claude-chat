@@ -9,6 +9,7 @@ import {
 import {
   CloudFrontWebDistribution,
   OriginAccessIdentity,
+  ViewerCertificate,
 } from "aws-cdk-lib/aws-cloudfront";
 import { NodejsBuild } from "deploy-time-build";
 import { Auth } from "./auth";
@@ -16,6 +17,7 @@ import { Auth } from "./auth";
 export interface FrontendProps {
   readonly backendApiEndpoint: string;
   readonly webSocketApiEndpoint: string;
+  readonly domainAlias: string | undefined;
   readonly auth: Auth;
   readonly accessLogBucket: IBucket;
   readonly webAclId: string;
@@ -39,33 +41,29 @@ export class Frontend extends Construct {
       "OriginAccessIdentity"
     );
     const distribution = new CloudFrontWebDistribution(this, "Distribution", {
-      originConfigs: [
-        {
-          s3OriginSource: {
-            s3BucketSource: assetBucket,
-            originAccessIdentity,
-          },
-          behaviors: [
-            {
-              isDefaultBehavior: true,
-            },
-          ],
+      viewerCertificate: !props.domainAlias ? undefined : ViewerCertificate.fromIamCertificate('customDomainCert', {
+        aliases: [props.domainAlias]
+      }),
+      originConfigs: [{
+        s3OriginSource: {
+          s3BucketSource: assetBucket,
+          originAccessIdentity,
         },
-      ],
-      errorConfigurations: [
-        {
-          errorCode: 404,
-          errorCachingMinTtl: 0,
-          responseCode: 200,
-          responsePagePath: "/",
-        },
-        {
-          errorCode: 403,
-          errorCachingMinTtl: 0,
-          responseCode: 200,
-          responsePagePath: "/",
-        },
-      ],
+        behaviors: [{
+          isDefaultBehavior: true,
+        }],
+      }],
+      errorConfigurations: [{
+        errorCode: 404,
+        errorCachingMinTtl: 0,
+        responseCode: 200,
+        responsePagePath: "/",
+      }, {
+        errorCode: 403,
+        errorCachingMinTtl: 0,
+        responseCode: 200,
+        responsePagePath: "/",
+      }],
       loggingConfig: {
         bucket: props.accessLogBucket,
         prefix: "Frontend/",
@@ -74,13 +72,11 @@ export class Frontend extends Construct {
     });
 
     new NodejsBuild(this, "ReactBuild", {
-      assets: [
-        {
-          path: "../frontend",
-          exclude: ["node_modules", "dist"],
-          commands: ["npm ci"],
-        },
-      ],
+      assets: [{
+        path: "../frontend",
+        exclude: ["node_modules", "dist"],
+        commands: ["npm ci"],
+      }],
       buildCommands: ["npm run build"],
       buildEnvironment: {
         VITE_APP_API_ENDPOINT: props.backendApiEndpoint,

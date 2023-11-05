@@ -15,6 +15,7 @@ import * as cdk from "aws-cdk-lib";
 
 export interface BedrockChatStackProps extends StackProps {
   readonly bedrockRegion: string;
+  readonly domainAlias: string | undefined;
   readonly webAclId: string;
 }
 
@@ -52,6 +53,7 @@ export class BedrockChatStack extends cdk.Stack {
     const frontend = new Frontend(this, "Frontend", {
       backendApiEndpoint: backendApi.api.apiEndpoint,
       webSocketApiEndpoint: websocket.apiEndpoint,
+      domainAlias: props.domainAlias,
       auth,
       accessLogBucket,
       webAclId: props.webAclId,
@@ -59,6 +61,9 @@ export class BedrockChatStack extends cdk.Stack {
 
     new CfnOutput(this, "FrontendURL", {
       value: `https://${frontend.cloudFrontWebDistribution.distributionDomainName}`,
+    });
+    new CfnOutput(this, "DomainAliasURL", {
+      value: props.domainAlias || 'No Domain Alias Defined. Set `context.domainAlias` in `cdk.json`.',
     });
   }
 }
