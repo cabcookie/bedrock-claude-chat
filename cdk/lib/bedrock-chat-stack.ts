@@ -62,7 +62,9 @@ export class BedrockChatStack extends Stack {
       value: `https://${frontend.cloudFrontWebDistribution.distributionDomainName}`,
     });
     new CfnOutput(this, "DomainAliasURL", {
-      value: props.domainAlias?.alias || 'No Domain Alias Defined. Set `context.domainAlias` in `cdk.json`.',
+      value: props.domainAlias 
+       ? `https://${props.domainAlias.alias}`
+       : 'No Domain Alias Defined. Set `context.domainAlias` in `cdk.json`.',
     });
   }
 }
