@@ -11,8 +11,11 @@ import {
   OriginAccessIdentity,
   ViewerCertificate,
 } from "aws-cdk-lib/aws-cloudfront";
+import { Certificate, CertificateValidation } from "aws-cdk-lib/aws-certificatemanager";
+import { HostedZone } from "aws-cdk-lib/aws-route53";
 import { NodejsBuild } from "deploy-time-build";
 import { Auth } from "./auth";
+import { DomainCertificate } from "./certificate";
 
 export interface FrontendProps {
   readonly backendApiEndpoint: string;
@@ -25,8 +28,14 @@ export interface FrontendProps {
 
 export class Frontend extends Construct {
   readonly cloudFrontWebDistribution: CloudFrontWebDistribution;
+  declare hostedZone: HostedZone;
+
   constructor(scope: Construct, id: string, props: FrontendProps) {
     super(scope, id);
+
+    const certificate = !!props.domainAlias && new DomainCertificate(this, 'CustomDomainCert', {
+      domainAlias: props.domainAlias,
+    });
 
     const assetBucket = new Bucket(this, "AssetBucket", {
       encryption: BucketEncryption.S3_MANAGED,
@@ -41,9 +50,10 @@ export class Frontend extends Construct {
       "OriginAccessIdentity"
     );
     const distribution = new CloudFrontWebDistribution(this, "Distribution", {
-      viewerCertificate: !props.domainAlias ? undefined : ViewerCertificate.fromIamCertificate('customDomainCert', {
-        aliases: [props.domainAlias]
-      }),
+      viewerCertificate: !certificate ? undefined : ViewerCertificate
+        .fromAcmCertificate(certificate.domainCertificate, {
+          aliases: [props.domainAlias],
+        }),
       originConfigs: [{
         s3OriginSource: {
           s3BucketSource: assetBucket,
