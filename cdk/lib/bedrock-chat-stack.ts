@@ -9,17 +9,16 @@ import { Construct } from "constructs";
 import { Auth } from "./constructs/auth";
 import { Api } from "./constructs/api";
 import { Database } from "./constructs/database";
-import { Frontend } from "./constructs/frontend";
+import { DomainAliasProps, Frontend } from "./constructs/frontend";
 import { WebSocket } from "./constructs/websocket";
-import * as cdk from "aws-cdk-lib";
 
 export interface BedrockChatStackProps extends StackProps {
   readonly bedrockRegion: string;
-  readonly domainAlias: string | undefined;
+  readonly domainAlias?: DomainAliasProps;
   readonly webAclId: string;
 }
 
-export class BedrockChatStack extends cdk.Stack {
+export class BedrockChatStack extends Stack {
   constructor(scope: Construct, id: string, props: BedrockChatStackProps) {
     super(scope, id, props);
 
@@ -63,7 +62,7 @@ export class BedrockChatStack extends cdk.Stack {
       value: `https://${frontend.cloudFrontWebDistribution.distributionDomainName}`,
     });
     new CfnOutput(this, "DomainAliasURL", {
-      value: props.domainAlias || 'No Domain Alias Defined. Set `context.domainAlias` in `cdk.json`.',
+      value: props.domainAlias?.alias || 'No Domain Alias Defined. Set `context.domainAlias` in `cdk.json`.',
     });
   }
 }
