@@ -74,7 +74,7 @@ const AuthenticatorSignOut: React.FC<AuthenticatorSignOutProps> = ({
         <header className='visible flex h-8 w-full items-center bg-cabcookie p-3 text-sm text-aws-font-color-white'>
           <div className='flex grow justify-center'>
             <i>
-              Hosted by <Link href='https://about.me/kochcarsten' target='_blank'>Carsten</Link>. I can see your conversations (<Link onClick={() => setPrivacyStatementVisibility(true)}>more details</Link>).
+              I can see your conversations (<Link onClick={() => setPrivacyStatementVisibility(true)}>learn more</Link>)
             </i>
           </div>
         </header>
