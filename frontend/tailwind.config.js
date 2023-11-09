@@ -14,6 +14,7 @@ export default {
         fastPulse: 'pulse 0.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
       },
       colors: {
+        'cabcookie': '#7abbd1',
         'aws-squid-ink': '#232F3E',
         'aws-sea-blue': '#005276',
         'aws-sea-blue-hover': '#003550',
