@@ -40,7 +40,7 @@ const AuthenticatorSignOut: React.FC<AuthenticatorSignOutProps> = ({
   title,
   onClickNewChat,
 }) => {
-  const [privacyStatementOpen, setPrivacyStatementVisibility] = useState(true);
+  const [privacyStatementOpen, setPrivacyStatementVisibility] = useState(false);
 
   return (
     <div className='relative flex h-screen w-screen bg-aws-paper'>
