@@ -6,13 +6,15 @@ import { RouterProvider, createBrowserRouter } from 'react-router-dom';
 import ChatPage from './pages/ChatPage.tsx';
 import NotFound from './pages/NotFound.tsx';
 import './i18n';
+import AdminPage from './pages/AdminPage.tsx';
 
 const router = createBrowserRouter([
   {
     path: '/', element: <App />,
     children: [
       { path: '/', element: <ChatPage /> },
-      { path: '/:conversationId', element: <ChatPage /> },
+      { path: '/chat/:conversationId', element: <ChatPage /> },
+      { path: '/admin', element: <AdminPage />},
       { path: '*', element: <NotFound /> },
     ],
   },

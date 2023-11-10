@@ -1,4 +1,3 @@
-// import { Auth } from "aws-amplify";
 import { Auth } from 'aws-amplify';
 import axios, { AxiosError, AxiosResponse } from 'axios';
 import useSWR, { SWRConfiguration } from 'swr';
@@ -30,7 +29,7 @@ const fetcher = (url: string) => {
 //   return error.response?.data?.message ?? error.message;
 // };
 
-// FIXME:バックエンドができた時点で最適化する
+// FIXME: Optimize when backend is ready
 
 /**
  * Hooks for Http Request

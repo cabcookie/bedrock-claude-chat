@@ -13,6 +13,7 @@ import { isMobile } from "react-device-detect";
 import useChat from "../hooks/useChat";
 import { useTranslation } from "react-i18next";
 import Menu from "./Menu";
+import { useUser } from "../hooks/useUser";
 
 type Props = BaseProps & {
   onSignOut: () => void;
@@ -163,6 +164,7 @@ const ChatListDrawer: React.FC<Props> = (props) => {
   const { conversations } = useConversation();
   const [prevConversations, setPrevConversations] = useState<typeof conversations>();
   const [generateTitleIndex, setGenerateTitleIndex] = useState(-1);
+  const { username } = useUser();
 
   const { deleteConversation } = useConversation();
   const { newChat } = useChat();
@@ -254,6 +256,9 @@ const ChatListDrawer: React.FC<Props> = (props) => {
             : 'w-0'
           } fixed top-0 z-50 h-14 bg-aws-squid-ink p-2 transition-width lg:w-64`}
         >
+          <div className="flex grow justify-center h-6 text-xs text-cabcookie">
+            Signed in as {username}
+          </div>
           <Button
             className="h-full w-full bg-aws-squid-ink"
             onClick={onClickNewChat}
@@ -263,13 +268,13 @@ const ChatListDrawer: React.FC<Props> = (props) => {
           </Button>
         </div>
 
-        <div className="absolute top-14 w-full overflow-y-auto overflow-x-hidden pb-12">{
+        <div className="absolute top-20 w-full overflow-y-auto overflow-x-hidden pb-12">{
           conversations?.map((conversation, idx) => (
             <Item
               key={idx}
               className="grow"
               label={conversation.title}
-              to={conversation.id}
+              to={`chat/${conversation.id}`}
               generatedTitle={idx === generateTitleIndex}
               onClick={closeSmallDrawer}
               onDelete={onDelete}
