@@ -19,34 +19,34 @@ const useConversationApi = () => {
 
   return {
     getConversations: () => {
-      return http.get<ConversationMeta[]>('conversations', {
+      return http.get<ConversationMeta[]>('v1/conversations', {
         keepPreviousData: true,
       });
     },
     getConversation: (conversationId?: string) => {
       return http.get<Conversation>(
-        !conversationId ? null : `conversation/${conversationId}`,
+        !conversationId ? null : `v1/conversation/${conversationId}`,
         {
           keepPreviousData: true,
         }
       );
     },
     postMessage: (input: PostMessageRequest) => {
-      return http.post<PostMessageResponse>('conversation', {
+      return http.post<PostMessageResponse>('v1/conversation', {
         ...input,
       });
     },
     deleteConversation: (conversationId: string) => {
-      return http.delete(`conversation/${conversationId}`);
+      return http.delete(`v1/conversation/${conversationId}`);
     },
     clearConversations: () => {
-      return http.delete('conversations');
+      return http.delete('v1/conversations');
     },
     updateTitle,
     updateTitleWithGeneratedTitle: async (conversationId: string) => {
       const res = await http.getOnce<{
         title: string;
-      }>(`conversation/${conversationId}/proposed-title`);
+      }>(`v1/conversation/${conversationId}/proposed-title`);
       return updateTitle(conversationId, res.data.title);
     },
     mutateConversations: (
@@ -56,7 +56,7 @@ const useConversationApi = () => {
         | MutatorCallback<ConversationMeta[]>,
       options?: Parameters<typeof mutate>[2]
     ) => {
-      return mutate('conversations', conversations, options);
+      return mutate('v1/conversations', conversations, options);
     },
   };
 };

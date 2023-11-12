@@ -104,8 +104,9 @@ export class Api extends Construct {
         userPoolClients: [props.auth.client],
       }
     );
-    let routeProps: any = {
-      path: "/{proxy+}",
+
+    api.addRoutes({
+      path: "/v1/{proxy+}",
       integration,
       methods: [
         HttpMethod.GET,
@@ -115,9 +116,7 @@ export class Api extends Construct {
         HttpMethod.DELETE,
       ],
       authorizer,
-    };
-
-    api.addRoutes(routeProps);
+    });
 
     this.api = api;
 

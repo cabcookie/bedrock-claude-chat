@@ -22,13 +22,13 @@ from fastapi import APIRouter, Request
 router = APIRouter()
 
 
-@router.get("/health")
+@router.get("/v1/health")
 def health():
     """ヘルスチェック用"""
     return {"status": "ok"}
 
 
-@router.post("/conversation", response_model=ChatOutput)
+@router.post("/v1/conversation", response_model=ChatOutput)
 def post_message(request: Request, chat_input: ChatInput):
     """チャットメッセージを送信する"""
     current_user: User = request.state.current_user
@@ -37,7 +37,7 @@ def post_message(request: Request, chat_input: ChatInput):
     return output
 
 
-@router.get("/conversation/{conversation_id}", response_model=Conversation)
+@router.get("/v1/conversation/{conversation_id}", response_model=Conversation)
 def get_conversation(request: Request, conversation_id: str):
     """一連の会話履歴を取得する"""
     current_user: User = request.state.current_user
@@ -65,7 +65,7 @@ def get_conversation(request: Request, conversation_id: str):
     return output
 
 
-@router.delete("/conversation/{conversation_id}")
+@router.delete("/v1/conversation/{conversation_id}")
 def delete_conversation(request: Request, conversation_id: str):
     """会話履歴を削除する"""
     current_user: User = request.state.current_user
@@ -73,7 +73,7 @@ def delete_conversation(request: Request, conversation_id: str):
     delete_conversation_by_id(current_user.id, conversation_id)
 
 
-@router.get("/conversations", response_model=list[ConversationMeta])
+@router.get("/v1/conversations", response_model=list[ConversationMeta])
 def get_all_conversations(
     request: Request,
 ):
@@ -92,7 +92,7 @@ def get_all_conversations(
     return output
 
 
-@router.delete("/conversations")
+@router.delete("/v1/conversations")
 def delete_all_conversations(
     request: Request,
 ):
@@ -100,7 +100,7 @@ def delete_all_conversations(
     delete_conversation_by_user_id(request.state.current_user.id)
 
 
-@router.patch("/conversation/{conversation_id}/title")
+@router.patch("/v1/conversation/{conversation_id}/title")
 def update_conversation_title(
     request: Request, conversation_id: str, new_title_input: NewTitleInput
 ):
@@ -113,7 +113,7 @@ def update_conversation_title(
 
 
 @router.get(
-    "/conversation/{conversation_id}/proposed-title", response_model=ProposedTitle
+    "/v1/conversation/{conversation_id}/proposed-title", response_model=ProposedTitle
 )
 def get_proposed_title(request: Request, conversation_id: str):
     """会話のタイトルを提案する"""
