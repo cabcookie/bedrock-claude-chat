@@ -8,8 +8,9 @@ import { PiArrowsCounterClockwise, PiWarningCircleFill } from 'react-icons/pi';
 import Button from '../components/Button';
 import { useTranslation } from 'react-i18next';
 import { TFunction } from 'i18next';
-import { MessageContentWithChildren } from '../@types/conversation';
+import { MessageContentWithChildren, Model } from '../@types/conversation';
 import { BaseProps } from '../@types/common';
+import SwitchBedrockModel from '../components/SwitchBedrockModel';
 
 const DrawNoMessages = (t: TFunction<"translation">) => <>
   <div className='mx-3 my-32 flex items-center justify-center text-4xl font-bold text-gray-500/20'>
@@ -64,6 +65,7 @@ const DrawWarning = (
 const ChatPage: React.FC = () => {
   const { t } = useTranslation();
   const [content, setContent] = useState('');
+  const [model, setModel] = useState<Model>('claude-instant-v1');
   const {
     postingMessage,
     postChat,
@@ -73,6 +75,7 @@ const ChatPage: React.FC = () => {
     retryPostChat,
     setCurrentMessageId,
     regenerate,
+    getPostedModel,
   } = useChat();
 
   const { scrollToBottom, scrollToTop } = useScroll();
@@ -85,21 +88,21 @@ const ChatPage: React.FC = () => {
   }, [paramConversationId]);
 
   const onSend = useCallback(() => {
-    postChat(content);
+    postChat(content, model);
     setContent('');
   }, [content, postChat]);
 
   const onChangeCurrentMessageId = useCallback((messageId: string) => {
-    setCurrentMessageId(messageId);
-  }, [setCurrentMessageId]);
+      setCurrentMessageId(messageId);
+    }, [setCurrentMessageId]);
 
   const onSubmitEditedContent = useCallback((messageId: string, content: string) => {
-    if (hasError) {
-      retryPostChat(content);
-    } else {
-      regenerate({ messageId, content });
-    }
-  }, [hasError, regenerate, retryPostChat]);
+      if (hasError) {
+        retryPostChat(content);
+      } else {
+        regenerate({ messageId, content });
+      }
+    }, [hasError, regenerate, retryPostChat]);
 
   const onRegenerate = useCallback(() => {
     regenerate();
@@ -113,6 +116,16 @@ const ChatPage: React.FC = () => {
 
 
   return <>
+    <div className='flex flex-col items-center justify-start'>
+      <div className='m-1'>
+        <SwitchBedrockModel
+          postedModel={getPostedModel()}
+          model={model}
+          setModel={setModel}
+        />
+      </div>
+      <hr className='w-full border-t border-gray-300' />
+    </div>
     <div className='pb-52 lg:pb-40'>
       {messages.length === 0
         ? DrawNoMessages(t)
@@ -139,6 +152,6 @@ const ChatPage: React.FC = () => {
       />
     </div>
   </>;
-}
+};
 
 export default ChatPage;
