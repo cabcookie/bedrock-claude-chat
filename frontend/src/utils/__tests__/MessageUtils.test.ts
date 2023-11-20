@@ -6,7 +6,7 @@ import {
 } from '../../@types/conversation';
 
 describe('convertMessageMapToArray', () => {
-  it('1件のみ', () => {
+  it('Only 1 item', () => {
     const data: MessageMap = {
       '1': {
         role: 'user',
@@ -37,7 +37,7 @@ describe('convertMessageMapToArray', () => {
     expect(actual).toEqual(expected);
   });
 
-  it('単純な親子関係:2件', () => {
+  it('Simple parent-child relationship: 2 items', () => {
     const data: MessageMap = {
       '1': {
         role: 'user',
@@ -90,7 +90,7 @@ describe('convertMessageMapToArray', () => {
     expect(actual).toEqual(expected);
   });
 
-  it('単純な親子関係:3件', () => {
+  it('Simple parent-child relationship: 3 items', () => {
     const data: MessageMap = {
       '1': {
         role: 'user',
@@ -165,7 +165,7 @@ describe('convertMessageMapToArray', () => {
     expect(actual).toEqual(expected);
   });
 
-  it('子が複数:単純な分岐:1件目を選択', () => {
+  it('Multiple children: Simple branch: Select 1st item', () => {
     const data: MessageMap = {
       '1': {
         role: 'user',
@@ -228,7 +228,7 @@ describe('convertMessageMapToArray', () => {
     expect(actual).toEqual(expected);
   });
 
-  it('子が複数:単純な分岐:2件目を選択', () => {
+  it('Multiple children: Simple branch: Select 2nd item', () => {
     const data: MessageMap = {
       '1': {
         role: 'user',
@@ -291,7 +291,7 @@ describe('convertMessageMapToArray', () => {
     expect(actual).toEqual(expected);
   });
 
-  it('子が複数:分岐後に会話が続いている:末端を選択', () => {
+  it('Multiple children: Conversation continues after branch: Select leaf node', () => {
     const data: MessageMap = {
       '1': {
         role: 'user',
@@ -376,7 +376,7 @@ describe('convertMessageMapToArray', () => {
     expect(actual).toEqual(expected);
   });
 
-  it('子が複数:分岐後に会話が続いている:末端以外を選択しても末端まで表示する', () => {
+  it('Multiple children: Conversation continues after branch: Even if non-leaf node is selected, display till leaf node', () => {
     const data: MessageMap = {
       '1': {
         role: 'user',
@@ -461,7 +461,7 @@ describe('convertMessageMapToArray', () => {
     expect(actual).toEqual(expected);
   });
 
-  it('分岐が複数:選択した要素配下のものは1要素目が選択された状態になる', () => {
+  it('Multiple branches: Elements under the selected element will be in a state where the 1st element is selected', () => {
     const data: MessageMap = {
       '1': {
         role: 'user',
@@ -600,7 +600,7 @@ describe('convertMessageMapToArray', () => {
     expect(actual).toEqual(expected);
   });
 
-  it('systemが除外される', () => {
+  it('system is excluded', () => {
     const data: MessageMap = {
       system: {
         role: 'user',
@@ -663,7 +663,7 @@ describe('convertMessageMapToArray', () => {
     expect(actual).toEqual(expected);
   });
 
-  it('systemが除外される:1件目から分岐:1-1を選択', () => {
+  it('system is excluded: Branch from 1st item: Select 1-1', () => {
     const data: MessageMap = {
       system: {
         role: 'user',
@@ -746,7 +746,7 @@ describe('convertMessageMapToArray', () => {
     expect(actual).toEqual(expected);
   });
 
-  it('systemが除外される:1件目から分岐:1-2を選択', () => {
+  it('system is excluded: Branch from 1st item: Select 1-2', () => {
     const data: MessageMap = {
       system: {
         role: 'user',
@@ -829,7 +829,7 @@ describe('convertMessageMapToArray', () => {
     expect(actual).toEqual(expected);
   });
 
-  it('systemが除外される:1件目から分岐:存在しないキーを選択', () => {
+  it('system is excluded: Branch from 1st item: Select non-existent key', () => {
     const data: MessageMap = {
       system: {
         role: 'user',
@@ -912,14 +912,14 @@ describe('convertMessageMapToArray', () => {
     expect(actual).toEqual(expected);
   });
 
-  it('messageMapにデータがない場合はから配列を返す', () => {
+  it('Return empty array if there is no data in messageMap', () => {
     const data: MessageMap = {};
 
     const actual = convertMessageMapToArray(data, '1');
     expect(actual).toEqual([]);
   });
 
-  it('存在しないIDの場合は先頭のChildを表示', () => {
+  it('If ID does not exist, show the first Child', () => {
     const data: MessageMap = {
       '1': {
         role: 'user',
@@ -1015,7 +1015,7 @@ describe('convertMessageMapToArray', () => {
     expect(actual).toEqual(expected);
   });
 
-  it('参照が途中で切れた場合は途中までの配列を返す:指定のIDが存在する', () => {
+  it('If reference is cut midway, return array up to that point: Specified ID exists', () => {
     const data: MessageMap = {
       '1': {
         role: 'user',
@@ -1079,7 +1079,7 @@ describe('convertMessageMapToArray', () => {
     expect(actual).toEqual(expected);
   });
 
-  it('参照が途中で切れた場合は途中までの配列を返す:指定のIDが存在しない', () => {
+  it('If reference is cut midway, return array up to that point: Specified ID does not exist', () => {
     const data: MessageMap = {
       '1': {
         role: 'user',
@@ -1143,7 +1143,7 @@ describe('convertMessageMapToArray', () => {
     expect(actual).toEqual(expected);
   });
 
-  it('循環参照している場合中断する:指定のIDが存在する', () => {
+  it('If there is a circular reference, interrupt: Specified ID exists', () => {
     const data: MessageMap = {
       '1': {
         role: 'user',
@@ -1207,7 +1207,7 @@ describe('convertMessageMapToArray', () => {
     expect(actual).toEqual(expected);
   });
 
-  it('循環参照している場合中断する:指定のIDが存在しない', () => {
+  it('If there is a circular reference, interrupt: Specified ID does not exist', () => {
     const data: MessageMap = {
       '1': {
         role: 'user',
