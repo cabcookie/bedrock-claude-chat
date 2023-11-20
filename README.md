@@ -39,20 +39,6 @@ npm i -g aws-cdk
 
 You need to be signed in to the appropriate AWS account before you run the deployment. If you are not sure how to sign in to your AWS account from the command line, read [Configure the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html).
 
-For this documentation we assume we have configured the `~/.aws/config` as follows:
-
-```
-[profile bedrock]
-sso_start_url = https://d-1234567.awsapps.com/start
-sso_region = eu-west-1
-sso_account_id = 1234567891012
-sso_role_name = PowerUserAccess
-region = us-east-1
-```
-
-The profile `bedrock` will be used to deploy the app.
-Feel free to use another name for the deployment. However, in the `./cdk/package.json` this profile is being referred to in the `deploy` script. Make sure you adjust your `package.json` accordingly.
-
 - Before deploying the CDK, you will need to work with Bootstrap once for the region you are deploying to. In this example, we will deploy to the us-east-1 region. Please replace your account id into `<account id>`.
 
 ```
@@ -62,14 +48,16 @@ cdk bootstrap aws://<account id>/us-east-1
 - Edit the following entries in [cdk.json](./cdk/cdk.json) according to your preferences.
 
   - `bedrockRegion`: Region where Bedrock is available. **NOTE: Bedrock does NOT support all regions for now.**
-  - `domainAlias`: Provide a domain name like `chat.myorganization.com`. Please be aware that you need to adjust certain DNS settings with your domain provider (see more details below).
+  - `domainAlias`: Provide a domain name like `chat.myorganization.com`. Please be aware that you need to adjust certain DNS settings with your domain provider (see more details below). Please refer to [Setting up a domain alias](#setting-up-a-domain-alias) for more details
   - `allowedIpV4AddressRanges`, `allowedIpV6AddressRanges`: Allowed IP Address range.
 
 - Deploy this sample project
 
 ```
-npm run deploy
+cdk deploy --all
 ```
+
+The script may stop at the stage `AWS::CertificateManager::Certificate` if you configured a `domainAlias` in the `cdk.json`. Please refer to [Setting up a domain alias](#setting-up-a-domain-alias) for more details.
 
 - You will get output similar to the following. The URL of the web app will be output in `BedrockChatStack.FrontendURL`, so please access it from your browser.
 
@@ -103,6 +91,22 @@ The sign-up screen will appear as shown above, where you can register your email
 
 > **Important**
 > This deployment method allows anyone with the URL to sign up. For production use, we strongly recommend adding IP address restrictions or disabling self-signup to mitigate security risks. Read more on how to [Disable self sign up](#disable-self-sign-up).
+
+## Setting up a domain alias
+
+If you configured a `domainAlias` in the `cdk.json` the deployment will stop at the stage `AWS::CertificateManager::Certificate`. You need to visit your domain service provider and configure a DNS entry to confirm you own the domain. Please visit [AWS Certificate Manager](https://us-east-1.console.aws.amazon.com/acm/home?region=us-east-1#/certificates/list). You will find the domain alias in the list in the status `Pending validation`. It indicates that the Certificate Manager is validating domain ownership.
+
+If I click on the Certificate ID I can see the `CNAME name` and the `CNAME value` the Certificate Manger is looking for:
+
+![](./docs/imgs/domain-validation.png)
+
+I need to set those values in my DNS settings at my domain provider:
+
+![](./docs/imgs/dns-settings.png)
+
+It takes a couple of minutes until the status changes to `Issued`.
+
+Please find more details in [this documentation](https://docs.aws.amazon.com/acm/latest/userguide/domain-ownership-validation.html).
 
 ## Architecture
 
