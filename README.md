@@ -2,54 +2,107 @@
 
 ![](https://github.com/aws-samples/bedrock-claude-chat/actions/workflows/test.yml/badge.svg)
 
-This repository is a sample chatbot using the Anthropic company's LLM [Claude 2](https://www.anthropic.com/index/claude-2), one of the foundational models provided by [Amazon Bedrock](https://aws.amazon.com/bedrock/) for generative AI.
+This repository is a sample chatbot using the Anthropic company's LLM [Claude 2](https://www.anthropic.com/index/claude-2) and [Claude Instant](https://www.anthropic.com/index/releasing-claude-instant-1-2), 2 of the foundational models provided by [Amazon Bedrock](https://aws.amazon.com/bedrock/) for generative AI.
 
 ![](./docs/imgs/demo1.gif)
 
-## How to deploy
+## Deploy using CDK
 
-Work in progress!
+This section describes the procedure for deploying the chat bot using CDK (the Cloud Development Kit).
+
+- Enable access to Claude model on Bedrock
+
+Open [Bedrock Model access](https://us-east-1.console.aws.amazon.com/bedrock/home?region=us-east-1#/modelaccess) > `Edit` > Check `Claude` and `Save changes`
+
+- Please have UNIX and a Node.js runtime environment. If not, you can also use [Cloud9](https://github.com/aws-samples/cloud9-setup-for-prototyping)
+- Clone this repository
 
 ```bash
+git clone https://github.com/cabcookie/bedrock-claude-chat.git
+```
+
+- Install npm packages
+
+```
+cd bedrock-claude-chat
 cd cdk
+npm ci
+```
+
+- Install [AWS CDK](https://aws.amazon.com/cdk/)
+
+```
+npm i -g aws-cdk
+```
+
+- Configure access to AWS Account
+
+You need to be signed in to the appropriate AWS account before you run the deployment. If you are not sure how to sign in to your AWS account from the command line, read [Configure the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html).
+
+For this documentation we assume we have configured the `~/.aws/config` as follows:
+
+```
+[profile bedrock]
+sso_start_url = https://d-1234567.awsapps.com/start
+sso_region = eu-west-1
+sso_account_id = 1234567891012
+sso_role_name = PowerUserAccess
+region = us-east-1
+```
+
+The profile `bedrock` will be used to deploy the app.
+Feel free to use another name for the deployment. However, in the `./cdk/package.json` this profile is being referred to in the `deploy` script. Make sure you adjust your `package.json` accordingly.
+
+- Before deploying the CDK, you will need to work with Bootstrap once for the region you are deploying to. In this example, we will deploy to the us-east-1 region. Please replace your account id into `<account id>`.
+
+```
+cdk bootstrap aws://<account id>/us-east-1
+```
+
+- Edit the following entries in [cdk.json](./cdk/cdk.json) according to your preferences.
+
+  - `bedrockRegion`: Region where Bedrock is available. **NOTE: Bedrock does NOT support all regions for now.**
+  - `domainAlias`: Provide a domain name like `chat.myorganization.com`. Please be aware that you need to adjust certain DNS settings with your domain provider (see more details below).
+  - `allowedIpV4AddressRanges`, `allowedIpV6AddressRanges`: Allowed IP Address range.
+
+- Deploy this sample project
+
+```
 npm run deploy
 ```
 
-put in the correct profile name
-learn how to use profiles or signing in to your AWS account
+- You will get output similar to the following. The URL of the web app will be output in `BedrockChatStack.FrontendURL`, so please access it from your browser.
+
+```sh
+ ✅  BedrockChatStack
+
+✨  Deployment time: 78.57s
+
+Outputs:
+BedrockChatStack.AuthUserPoolClientIdXXXXX = xxxxxxx
+BedrockChatStack.AuthUserPoolIdXXXXXX = us-east-1_XXXX
+BedrockChatStack.BackendApiBackendApiUrlXXXXX = https://xxxxx.execute-api.us-east-1.amazonaws.com
+BedrockChatStack.DomainAliasURL = https://chat.myorganization.com
+BedrockChatStack.FrontendURL = https://xxxxx.cloudfront.net
+```
 
 ## 📚 Supported Languages
 
 - English 💬
-- 日本語 💬 (ドキュメントは[こちら](./docs/README_ja.md))
+- 日本語 💬
 - 한국어 💬
 - 中文 💬
 
-## 🚀 Super-easy Deployment
+## Use the chat bot
 
-- Open [Bedrock Model access](https://us-east-1.console.aws.amazon.com/bedrock/home?region=us-east-1#/modelaccess) > `Edit` > Check `Claude` and `Save changes`
-- Open [CloudShell](https://console.aws.amazon.com/cloudshell/home)
-- Run deployment via following commands
-
-```sh
-git clone https://github.com/aws-samples/bedrock-claude-chat.git
-cd bedrock-claude-chat
-chmod +x bin.sh
-./bin.sh
-```
-
-- After about 20 minutes, you will get the following output, which you can access from your browser
-
-```
-Frontend URL: https://xxxxxxxxx.cloudfront.net
-```
+Visit the page `https://chat.myorganization.com` (mentioned in `BedrockChatStack.DomainAliasURL`) or `https://xxxxx.cloudfront.net` (mentioned in `BedrockChatStack.FrontendURL`).
 
 ![](./docs/imgs/signin.png)
 
 The sign-up screen will appear as shown above, where you can register your email and log in.
 
 > **Important**
-> This deployment method allows anyone with the URL to sign up. For production use, we strongly recommend adding IP address restrictions or disabling self-signup to mitigate security risks. To set up, [Deploy using CDK](#deploy-using-cdk) for IP address restrictions or [Disable self sign up](#disable-self-sign-up).
+> This deployment method allows anyone with the URL to sign up. For production use, we strongly recommend adding IP address restrictions or disabling self-signup to mitigate security risks. Read more on how to [Disable self sign up](#disable-self-sign-up).
 
 ## Architecture
 
@@ -79,62 +132,6 @@ It's an architecture built on AWS managed services, eliminating the need for inf
 - [x] I18n
 - [x] Model switch (Claude Instant / Claude)
 - [ ] Save and re-use prompt template
-
-## Deploy using CDK
-
-Super-easy Deployment uses [AWS CodeBuild](https://aws.amazon.com/codebuild/) to perform deployment by CDK internally. This section describes the procedure for deploying directly with CDK.
-
-- Please have UNIX and a Node.js runtime environment. If not, you can also use [Cloud9](https://github.com/aws-samples/cloud9-setup-for-prototyping)
-- Clone this repository
-
-```
-git clone https://github.com/aws-samples/bedrock-claude-chat
-```
-
-- Install npm packages
-
-```
-cd bedrock-claude-chat
-cd cdk
-npm ci
-```
-
-- Install [AWS CDK](https://aws.amazon.com/cdk/)
-
-```
-npm i -g aws-cdk
-```
-
-- Before deploying the CDK, you will need to work with Bootstrap once for the region you are deploying to. In this example, we will deploy to the us-east-1 region. Please replace your account id into `<account id>`.
-
-```
-cdk bootstrap aws://<account id>/us-east-1
-```
-
-- If necessary, edit the following entries in [cdk.json](./cdk/cdk.json) if necessary.
-
-  - `bedrockRegion`: Region where Bedrock is available. **NOTE: Bedrock does NOT support all regions for now.**
-  - `allowedIpV4AddressRanges`, `allowedIpV6AddressRanges`: Allowed IP Address range.
-
-- Deploy this sample project
-
-```
-cdk deploy --require-approval never --all
-```
-
-- You will get output similar to the following. The URL of the web app will be output in `BedrockChatStack.FrontendURL`, so please access it from your browser.
-
-```sh
- ✅  BedrockChatStack
-
-✨  Deployment time: 78.57s
-
-Outputs:
-BedrockChatStack.AuthUserPoolClientIdXXXXX = xxxxxxx
-BedrockChatStack.AuthUserPoolIdXXXXXX = ap-northeast-1_XXXX
-BedrockChatStack.BackendApiBackendApiUrlXXXXX = https://xxxxx.execute-api.ap-northeast-1.amazonaws.com
-BedrockChatStack.FrontendURL = https://xxxxx.cloudfront.net
-```
 
 ## Others
 
