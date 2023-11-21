@@ -12,7 +12,7 @@ This section describes the procedure for deploying the chat bot using CDK (the C
 
 This video explains the deployment step by step:
 
-[![Deploying Bedrock Claude Chat step by step](https://img.youtube.com/vi/XVj8b_Hhxwk/hqdefault.jpg)](https://youtu.be/XVj8b_Hhxwk)
+[![Video tutorial](./docs/imgs/yt-tutorial-thumbnail.png)](https://youtu.be/XVj8b_Hhxwk)
 
 - Enable access to Claude model on Bedrock
 
