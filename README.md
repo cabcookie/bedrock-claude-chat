@@ -1,6 +1,6 @@
 # Bedrock Claude Chat
 
-![](https://github.com/aws-samples/bedrock-claude-chat/actions/workflows/test.yml/badge.svg)
+![](https://github.com/cabcookie/bedrock-claude-chat/actions/workflows/test.yml/badge.svg)
 
 This repository is a sample chatbot using the Anthropic company's LLM [Claude 2](https://www.anthropic.com/index/claude-2) and [Claude Instant](https://www.anthropic.com/index/releasing-claude-instant-1-2), 2 of the foundational models provided by [Amazon Bedrock](https://aws.amazon.com/bedrock/) for generative AI.
 
@@ -12,7 +12,7 @@ This section describes the procedure for deploying the chat bot using CDK (the C
 
 This video explains the deployment step by step:
 
-[![Deploying Bedrock Claude Chat step by step](https://img.youtube.com/vi/XVj8b_Hhxwk/default.jpg)](https://youtu.be/XVj8b_Hhxwk)
+[![Deploying Bedrock Claude Chat step by step](https://img.youtube.com/vi/XVj8b_Hhxwk/hqdefault.jpg)](https://youtu.be/XVj8b_Hhxwk)
 
 - Enable access to Claude model on Bedrock
 
