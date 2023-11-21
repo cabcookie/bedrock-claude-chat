@@ -6,7 +6,7 @@
   },
   "scripts": {
     "predeploy": "cd ../backend_js && npm ci",
-    "deploy": "cdk deploy --all --profile bedrock",
+    "deploy": "cdk deploy --all",
     "build": "tsc",
     "watch": "tsc -w",
     "test": "jest",
