@@ -93,7 +93,7 @@ const Item: React.FC<ItemProps> = (props) => {
         ? 'bg-aws-sea-blue'
         : 'hover:bg-aws-sea-blue-hover'
       } ${props.className ?? ''}`}
-      to={props.to}
+      to={`chat/${props.to}`}
       onClick={props.onClick}
     >
       <div className="flex h-8 max-h-5 w-full justify-start overflow-hidden">
@@ -274,7 +274,7 @@ const ChatListDrawer: React.FC<Props> = (props) => {
               key={idx}
               className="grow"
               label={conversation.title}
-              to={`chat/${conversation.id}`}
+              to={conversation.id}
               generatedTitle={idx === generateTitleIndex}
               onClick={closeSmallDrawer}
               onDelete={onDelete}
