@@ -10,6 +10,10 @@ This repository is a sample chatbot using the Anthropic company's LLM [Claude 2]
 
 This section describes the procedure for deploying the chat bot using CDK (the Cloud Development Kit).
 
+This video explains the deployment step by step:
+
+[![Deploying Bedrock Claude Chat step by step](https://img.youtube.com/vi/XVj8b_Hhxwk/default.jpg)](https://youtu.be/XVj8b_Hhxwk)
+
 - Enable access to Claude model on Bedrock
 
 Open [Bedrock Model access](https://us-east-1.console.aws.amazon.com/bedrock/home?region=us-east-1#/modelaccess) > `Edit` > Check `Claude` and `Save changes`
