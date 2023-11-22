@@ -14,16 +14,7 @@ app.use(async (req: express.Request, res: express.Response, next: express.NextFu
   console.log('Request params:', req.params);
   console.log('Request headers:', req.headers);
 
-  // Log authorization token
-  const token = req.headers.authorization?.split(' ')[1];
-  console.log('Authorization token:', token);
-
-  const result = await getCurrentUser(token || '');
-  console.log('Current user:', result);
-
   const allowedOrigins = process.env.CORS_ALLOW_ORIGINS || '*';
-  const { TABLE_NAME, USER_POOL_ID, CLIENT_ID, ACCOUNT, REGION, BEDROCK_REGION, TABLE_ACCESS_ROLE_ARN } = process.env;
-  console.log('Environment variables:', { TABLE_NAME, USER_POOL_ID, CLIENT_ID, ACCOUNT, REGION, BEDROCK_REGION, TABLE_ACCESS_ROLE_ARN, allowedOrigins });
   res.header('Access-Control-Allow-Origin', allowedOrigins);
   res.header('Access-Control-Allow-Credentials', 'true');
   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');

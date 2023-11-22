@@ -19,7 +19,7 @@ const useConversationApi = () => {
 
   return {
     getConversations: () => {
-      return http.get<ConversationMeta[]>('v1/conversations', {
+      return http.get<ConversationMeta[]>('v2/conversations', {
         keepPreviousData: true,
       });
     },

@@ -21,10 +21,6 @@ api.interceptors.request.use(async (config) => {
 });
 
 const fetcher = (url: string) => {
-  api.get('v2/conversations').then((res) => {
-    console.log(res.data);
-  });
-
   return api.get(url).then((res) => res.data);
 };
 
