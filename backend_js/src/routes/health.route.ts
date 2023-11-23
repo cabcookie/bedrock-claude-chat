@@ -3,12 +3,7 @@ import { Request, Response, Router } from 'express';
 const router = Router();
 
 router.get('/', async (req: Request, res: Response) => {
-  try {
-    res.status(200).json();
-  } catch (error) {
-    console.error('An error ocurred:', error);
-    res.status(500).json(error);
-  }
+  res.status(200).json({"status": "ok"});
 });
 
 export default router;

@@ -1,7 +1,7 @@
 import express from 'express';
 import serverless from 'serverless-http';
-import { getCurrentUser } from './helper/auth';
 import routes from './routes';
+import errorHandler, { RouteNotFound } from './helper/error-handler';
 
 const app = express();
 app.use(express.json());
@@ -26,10 +26,9 @@ app.use(async (req: express.Request, res: express.Response, next: express.NextFu
 app.use('/v2/', routes);
 
 app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
-  res.status(404).send('Not Found');
+  throw new RouteNotFound();
 });
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  res.status(err.status || 500).send(err.message);
-});
+
+app.use(errorHandler);
 
 export const handler = serverless(app);

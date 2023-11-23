@@ -13,6 +13,6 @@ export const getCurrentUser = async (headers: IncomingHttpHeaders) => {
   console.log('Authorization token:', token);
 
   const { sub, email } = await tokenVerifier.verify(token || '');
-  console.log("Response", { sub, email });
+  console.log("Current User", { sub, email });
   return { sub, email };
 };

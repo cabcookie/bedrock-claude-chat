@@ -2,30 +2,18 @@ from app.repositories.conversation import (
     change_conversation_title,
     delete_conversation_by_id,
     delete_conversation_by_user_id,
-    find_conversation_by_id,
-    find_conversation_by_user_id,
 )
 from app.route_schema import (
     ChatInput,
     ChatOutput,
-    Content,
-    Conversation,
-    ConversationMeta,
-    MessageOutput,
     NewTitleInput,
     ProposedTitle,
     User,
 )
-from app.usecase import chat, get_invoke_payload, propose_conversation_title
+from app.usecase import chat, propose_conversation_title
 from fastapi import APIRouter, Request
 
 router = APIRouter()
-
-
-@router.get("/v1/health")
-def health():
-    """For health check"""
-    return {"status": "ok"}
 
 
 @router.post("/v1/conversation", response_model=ChatOutput)
@@ -37,60 +25,12 @@ def post_message(request: Request, chat_input: ChatInput):
     return output
 
 
-@router.get("/v1/conversation/{conversation_id}", response_model=Conversation)
-def get_conversation(request: Request, conversation_id: str):
-    """Get a series of conversation history"""
-    current_user: User = request.state.current_user
-
-    conversation = find_conversation_by_id(current_user.id, conversation_id)
-    output = Conversation(
-        id=conversation_id,
-        title=conversation.title,
-        create_time=conversation.create_time,
-        last_message_id=conversation.last_message_id,
-        message_map={
-            message_id: MessageOutput(
-                role=message.role,
-                content=Content(
-                    content_type=message.content.content_type,
-                    body=message.content.body,
-                ),
-                model=message.model,
-                children=message.children,
-                parent=message.parent,
-            )
-            for message_id, message in conversation.message_map.items()
-        },
-    )
-    return output
-
-
 @router.delete("/v1/conversation/{conversation_id}")
 def delete_conversation(request: Request, conversation_id: str):
     """Delete conversation history"""
     current_user: User = request.state.current_user
 
     delete_conversation_by_id(current_user.id, conversation_id)
-
-
-@router.get("/v1/conversations", response_model=list[ConversationMeta])
-def get_all_conversations(
-    request: Request,
-):
-    """Get metadata of all conversation history"""
-    current_user: User = request.state.current_user
-
-    conversations = find_conversation_by_user_id(current_user.id)
-    output = [
-        ConversationMeta(
-            id=conversation.id,
-            title=conversation.title,
-            create_time=conversation.create_time,
-            model=conversation.model,
-        )
-        for conversation in conversations
-    ]
-    return output
 
 
 @router.delete("/v1/conversations")

@@ -2,10 +2,14 @@ import { Request, Response, Router } from 'express';
 import { getCurrentUser } from '../helper/auth';
 import { getTableClient } from '../helper/conversation-table';
 import { ConversationMeta } from './../@types/schemas';
-
-
+import { RecordNotFoundError } from '../helper/error-handler';
 
 const router = Router();
+
+export const decomposeConversationId = (str: string) => str.split("_")[1] as string;
+
+export const composeConversationId = (userId: string, conversationId: string) =>
+  `${userId}_${conversationId}` as string;
 
 const findConversationByUserId = async (userId: string): Promise<Array<ConversationMeta> | undefined> => {
   console.log("Finding conversations for user:", userId);
@@ -19,9 +23,11 @@ const findConversationByUserId = async (userId: string): Promise<Array<Conversat
   });
 
   console.log("Response:", response);
+  if (!response)
+    throw new RecordNotFoundError('Conversations not found');
 
   return response.Items?.map((item): ConversationMeta => ({
-    id: item.ConversationId.split("_")[1] as string,
+    id: decomposeConversationId(item.ConversationId),
     title: item.Title as string,
     createTime: Number(item.CreateTime),
     model: JSON.parse(item.MessageMap as string).system.model,
@@ -29,23 +35,11 @@ const findConversationByUserId = async (userId: string): Promise<Array<Conversat
 };
 
 router.get('/', async (req: Request, res: Response) => {
-  try {
-    const currentUser = await getCurrentUser(req.headers);
-    console.log("Current user:", currentUser);
-
-    const conversations = await findConversationByUserId(currentUser.sub);
-    console.log("Conversations:", conversations);
-
-    if (!conversations) {
-      res.status(404).json({ message: 'Conversations not found' });
-      return;
-    }
-
-    res.status(200).json(conversations);
-  } catch (error) {
-    console.error('An error ocurred:', error);
-    res.status(500).json(error);
-  }
+  console.log("GET /conversations");
+  const currentUser = await getCurrentUser(req.headers);
+  const conversations = await findConversationByUserId(currentUser.sub);
+  console.log("Conversations:", conversations);
+  res.status(200).json(conversations);
 });
 
 export default router;

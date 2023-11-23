@@ -56,12 +56,12 @@ const getDocumentClient = async (userId: string, tableName: string): Promise<Dyn
           'dynamodb:PutItem',
           'dynamodb:Query',
           'dynamodb:UpdateItem',
-          // 'dynamodb:BatchGetItem',
-          // 'dynamodb:BatchWriteItem',
-          // 'dynamodb:ConditionCheckItem',
-          // 'dynamodb:DescribeTable',
-          // 'dynamodb:GetRecords',
-          // 'dynamodb:Scan',
+          'dynamodb:BatchGetItem',
+          'dynamodb:BatchWriteItem',
+          'dynamodb:ConditionCheckItem',
+          'dynamodb:DescribeTable',
+          'dynamodb:GetRecords',
+          'dynamodb:Scan',
         ],
         Resource: [
           `arn:aws:dynamodb:${REGION}:${ACCOUNT}:table/${tableName}`,
@@ -69,8 +69,8 @@ const getDocumentClient = async (userId: string, tableName: string): Promise<Dyn
         ],
         Condition: {
           // Allow access to items with the same partition key as the user id
-          'ForAllValues:StringEquals': {
-            'dynamodb:LeadingKeys': [userId],
+          'ForAllValues:StringLike': {
+            'dynamodb:LeadingKeys': [`${userId}*`],
           },
         },
       }],
@@ -96,7 +96,6 @@ export const getTableClient = async (userId: string) => {
     TABLE_NAME,
   } = process.env;
 
-  console.log("getDocumentClient...");
   const ddb = await getDocumentClient(userId, TABLE_NAME as string);
 
   return {

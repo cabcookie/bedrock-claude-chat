@@ -25,7 +25,7 @@ const useConversationApi = () => {
     },
     getConversation: (conversationId?: string) => {
       return http.get<Conversation>(
-        !conversationId ? null : `v1/conversation/${conversationId}`,
+        !conversationId ? null : `v2/conversation/${conversationId}`,
         {
           keepPreviousData: true,
         }
