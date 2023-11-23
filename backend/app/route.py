@@ -1,12 +1,10 @@
 from app.repositories.conversation import (
-    change_conversation_title,
     delete_conversation_by_id,
     delete_conversation_by_user_id,
 )
 from app.route_schema import (
     ChatInput,
     ChatOutput,
-    NewTitleInput,
     User,
 )
 from app.usecase import chat
@@ -38,16 +36,4 @@ def delete_all_conversations(
 ):
     """Delete all conversation history"""
     delete_conversation_by_user_id(request.state.current_user.id)
-
-
-@router.patch("/v1/conversation/{conversation_id}/title")
-def update_conversation_title(
-    request: Request, conversation_id: str, new_title_input: NewTitleInput
-):
-    """Update conversation title"""
-    current_user: User = request.state.current_user
-
-    change_conversation_title(
-        current_user.id, conversation_id, new_title_input.new_title
-    )
 

@@ -17,7 +17,9 @@ const findConversationById = async (userId: string, conversationId: string): Pro
   const response = await table.query({
     IndexName: 'ConversationIdIndex',
     KeyConditionExpression: 'ConversationId = :conversationId',
-    ExpressionAttributeValues: { ':conversationId': composeConversationId(userId, conversationId) },
+    ExpressionAttributeValues: {
+      ':conversationId': composeConversationId(userId, conversationId),
+    },
   });
 
   if (!response.Items || response.Items.length == 0)
@@ -89,6 +91,41 @@ const proposeConversationTitle = async (userId: string, conversationId: string):
   };
 }
 
+const changeConversationTitle = async (userId: string, conversationId: string, newTitle: string) => {
+  console.log("Changing conversation title:", conversationId);
+  console.log("New title:", newTitle);
+  const table = await getTableClient(userId);
+  const queryResponse = await table.query({
+    IndexName: 'ConversationIdIndex',
+    KeyConditionExpression: 'ConversationId = :conversationId',
+    ExpressionAttributeValues: {
+      ':conversationId': composeConversationId(userId, conversationId),
+    },
+  });
+
+  if (!queryResponse.Items || queryResponse.Items.length == 0)
+    throw new RecordNotFoundError(`No conversation found with id: ${conversationId}`);
+
+  const item = queryResponse.Items[0];
+  const itemUserId = item.UserId;
+  
+  const updateResponse = await table.updateItem({
+    Key: {
+      UserId: itemUserId,
+      ConversationId: composeConversationId(itemUserId, conversationId),
+    },
+    UpdateExpression: 'set Title = :title',
+    ExpressionAttributeValues: {
+      ':title': newTitle,
+    },
+    ReturnValues: 'UPDATED_NEW',
+  });
+
+  console.log("Update response:", updateResponse);
+
+  return updateResponse;
+};
+
 router.get('/:conversationId', async (req: Request, res: Response) => {
   const { conversationId } = req.params;
   console.log(`GET /conversation/${conversationId}`);
@@ -105,6 +142,14 @@ router.get('/:conversationId/proposed-title', async (req: Request, res: Response
   const title = await proposeConversationTitle(currentUser.sub, conversationId);
   console.log("Proposed title:", title);
   res.status(200).json(title);
+});
+
+router.patch('/:conversationId/title', async (req: Request, res: Response) => {
+  const { conversationId } = req.params;
+  const { newTitle } = req.body;
+  console.log(`PATCH /conversation/${conversationId}/title with '${newTitle}'`);
+  const currentUser = await getCurrentUser(req.headers);
+  await changeConversationTitle(currentUser.sub, conversationId, newTitle);
 });
 
 export default router;

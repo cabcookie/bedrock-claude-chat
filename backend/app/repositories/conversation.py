@@ -1,7 +1,6 @@
 import json
 import logging
 import os
-from datetime import datetime
 from decimal import Decimal as decimal
 
 import boto3
@@ -250,38 +249,3 @@ def delete_conversation_by_user_id(user_id: str):
     else:
         raise RecordNotFoundError(f"No conversations found for user id: {user_id}")
 
-
-def change_conversation_title(user_id: str, conversation_id: str, new_title: str):
-    logger.debug(f"Changing conversation title: {conversation_id}")
-    logger.debug(f"New title: {new_title}")
-    table = _get_table_client(user_id)
-
-    # First, we need to find the item using the GSI
-    response = table.query(
-        IndexName="ConversationIdIndex",
-        KeyConditionExpression=Key("ConversationId").eq(
-            _compose_conv_id(user_id, conversation_id)
-        ),
-    )
-
-    items = response["Items"]
-    if not items:
-        raise RecordNotFoundError(f"No conversation found with id {conversation_id}")
-
-    # We'll just update the first item in case there are multiple matches
-    item = items[0]
-    user_id = item["UserId"]
-
-    # Then, we update the item using its primary key
-    response = table.update_item(
-        Key={
-            "UserId": user_id,
-            "ConversationId": _compose_conv_id(user_id, conversation_id),
-        },
-        UpdateExpression="set Title=:t",
-        ExpressionAttributeValues={":t": new_title},
-        ReturnValues="UPDATED_NEW",
-    )
-    logger.debug(f"Updated conversation title response: {response}")
-
-    return response

@@ -1,6 +1,7 @@
 import { DynamoDB, STS } from 'aws-sdk';
 
 type QueryInput = Omit<DynamoDB.DocumentClient.QueryInput, 'TableName'>;
+type UpdateItemInput = Omit<DynamoDB.DocumentClient.UpdateItemInput, 'TableName'>;
 
 /**
  * Get a DynamoDB document client with row level access
@@ -100,6 +101,10 @@ export const getTableClient = async (userId: string) => {
 
   return {
     query: (props: QueryInput) => ddb.query({
+      ...props,
+      TableName: TABLE_NAME as string,
+    }).promise(),
+    updateItem: (props: UpdateItemInput) => ddb.update({
       ...props,
       TableName: TABLE_NAME as string,
     }).promise(),

@@ -12,7 +12,7 @@ const useConversationApi = () => {
   const { mutate } = useSWRConfig();
 
   const updateTitle = (conversationId: string, title: string) => {
-    return http.patch(`v1/conversation/${conversationId}/title`, {
+    return http.patch(`v2/conversation/${conversationId}/title`, {
       newTitle: title,
     });
   };
