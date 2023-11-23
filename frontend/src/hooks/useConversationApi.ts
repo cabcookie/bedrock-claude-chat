@@ -40,7 +40,7 @@ const useConversationApi = () => {
       return http.delete(`v2/conversation/${conversationId}`);
     },
     clearConversations: () => {
-      return http.delete('v1/conversations');
+      return http.delete('v2/conversations');
     },
     updateTitle,
     updateTitleWithGeneratedTitle: async (conversationId: string) => {

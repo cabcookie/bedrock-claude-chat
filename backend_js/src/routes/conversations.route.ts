@@ -11,6 +11,23 @@ export const decomposeConversationId = (str: string) => str.split("_")[1] as str
 export const composeConversationId = (userId: string, conversationId: string) =>
   `${userId}_${conversationId}` as string;
 
+const deleteConversationByUserId = async (userId: string): Promise<any> => {
+  console.log("Deleting conversations for user:", userId);
+  const conversations = await findConversationByUserId(userId);
+  if (!conversations)
+    throw new RecordNotFoundError(`No conversations found for user: ${userId}`);
+
+  const table = await getTableClient(userId);
+  const responses = [];
+  for (let index = 0; index < conversations.length; index++) {
+    const conversation = conversations[index];
+    const response = await table.deleteConversation(userId, conversation.id);
+    responses.push(response);
+  }
+  console.log("Delete responses:", responses);
+  return responses;
+};
+
 const findConversationByUserId = async (userId: string): Promise<Array<ConversationMeta>> => {
   console.log("Finding conversations for user:", userId);
 
@@ -40,6 +57,14 @@ router.get('/', async (req: Request, res: Response) => {
   const conversations = await findConversationByUserId(currentUser.sub);
   console.log("Conversations:", conversations);
   res.status(200).json(conversations);
+});
+
+router.delete('/', async (req: Request, res: Response) => {
+  console.log("DELETE /conversations");
+  const currentUser = await getCurrentUser(req.headers);
+  const response = await deleteConversationByUserId(currentUser.sub);
+  console.log("Delete response:", response);
+  res.status(200).json(response);
 });
 
 export default router;

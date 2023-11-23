@@ -6,7 +6,6 @@ from decimal import Decimal as decimal
 import boto3
 from app.repositories.model import (
     ContentModel,
-    ConversationMetaModel,
     ConversationModel,
     MessageModel,
 )
@@ -24,11 +23,6 @@ sts_client = boto3.client("sts")
 
 class RecordNotFoundError(Exception):
     pass
-
-
-def _compose_conv_id(user_id: str, conversation_id: str):
-    # Add user_id prefix for row level security to match with `LeadingKeys` condition
-    return f"{user_id}_{conversation_id}"
 
 
 def _decompose_conv_id(conv_id: str):
@@ -116,57 +110,6 @@ def store_conversation(user_id: str, conversation: ConversationModel):
     return response
 
 
-def find_conversation_by_user_id(user_id: str) -> list[ConversationMetaModel]:
-    logger.debug(f"Finding conversations for user: {user_id}")
-    table = _get_table_client(user_id)
-    response = table.query(
-        KeyConditionExpression=Key("UserId").eq(user_id),
-        ScanIndexForward=False,
-    )
-
-    conversations = [
-        ConversationMetaModel(
-            id=_decompose_conv_id(item["ConversationId"]),
-            create_time=float(item["CreateTime"]),
-            title=item["Title"],
-            # NOTE: all message has the same model
-            model=json.loads(item["MessageMap"]).popitem()[1]["model"],
-        )
-        for item in response["Items"]
-    ]
-
-    query_count = 1
-    MAX_QUERY_COUNT = 5
-    while "LastEvaluatedKey" in response:
-        model = json.loads(response["Items"][0]["MessageMap"]).popitem()[1]["model"]
-        # NOTE: max page size is 1MB
-        # See: https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Query.Pagination.html
-        response = table.query(
-            KeyConditionExpression=Key("UserId").eq(user_id),
-            ProjectionExpression="ConversationId, CreateTime, Title",
-            ScanIndexForward=False,
-            ExclusiveStartKey=response["LastEvaluatedKey"],
-        )
-        conversations.extend(
-            [
-                ConversationMetaModel(
-                    id=_decompose_conv_id(item["ConversationId"]),
-                    create_time=float(item["CreateTime"]),
-                    title=item["Title"],
-                    model=model,
-                )
-                for item in response["Items"]
-            ]
-        )
-        query_count += 1
-        if query_count > MAX_QUERY_COUNT:
-            logger.warning(f"Query count exceeded {MAX_QUERY_COUNT}")
-            break
-
-    logger.debug(f"Found conversations: {conversations}")
-    return conversations
-
-
 def find_conversation_by_id(user_id: str, conversation_id: str) -> ConversationModel:
     logger.debug(f"Finding conversation: {conversation_id}")
     table = _get_table_client(user_id)
@@ -203,24 +146,4 @@ def find_conversation_by_id(user_id: str, conversation_id: str) -> ConversationM
     )
     logger.debug(f"Found conversation: {conv}")
     return conv
-
-
-def delete_conversation_by_user_id(user_id: str):
-    logger.debug(f"Deleting conversations for user: {user_id}")
-    # First, find all conversations for the user
-    conversations = find_conversation_by_user_id(user_id)
-    if conversations:
-        table = _get_table_client(user_id)
-        responses = []
-        for conversation in conversations:
-            # Construct key to delete
-            key = {
-                "UserId": user_id,
-                "ConversationId": _compose_conv_id(user_id, conversation.id),
-            }
-            response = table.delete_item(Key=key)
-            responses.append(response)
-        return responses
-    else:
-        raise RecordNotFoundError(f"No conversations found for user id: {user_id}")
 
