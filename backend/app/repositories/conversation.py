@@ -205,31 +205,6 @@ def find_conversation_by_id(user_id: str, conversation_id: str) -> ConversationM
     return conv
 
 
-def delete_conversation_by_id(user_id: str, conversation_id: str):
-    logger.debug(f"Deleting conversation: {conversation_id}")
-    table = _get_table_client(user_id)
-
-    # Query the index
-    response = table.query(
-        IndexName="ConversationIdIndex",
-        KeyConditionExpression=Key("ConversationId").eq(
-            _compose_conv_id(user_id, conversation_id)
-        ),
-    )
-
-    # Check if conversation exists
-    if response["Items"]:
-        user_id = response["Items"][0]["UserId"]
-        key = {
-            "UserId": user_id,
-            "ConversationId": _compose_conv_id(user_id, conversation_id),
-        }
-        delete_response = table.delete_item(Key=key)
-        return delete_response
-    else:
-        raise RecordNotFoundError(f"No conversation found with id: {conversation_id}")
-
-
 def delete_conversation_by_user_id(user_id: str):
     logger.debug(f"Deleting conversations for user: {user_id}")
     # First, find all conversations for the user

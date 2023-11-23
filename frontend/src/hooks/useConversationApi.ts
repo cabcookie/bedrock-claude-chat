@@ -37,7 +37,7 @@ const useConversationApi = () => {
       });
     },
     deleteConversation: (conversationId: string) => {
-      return http.delete(`v1/conversation/${conversationId}`);
+      return http.delete(`v2/conversation/${conversationId}`);
     },
     clearConversations: () => {
       return http.delete('v1/conversations');

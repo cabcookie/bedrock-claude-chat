@@ -1,4 +1,5 @@
 import { DynamoDB, STS } from 'aws-sdk';
+import { composeConversationId } from '../routes/conversations.route';
 
 type QueryInput = Omit<DynamoDB.DocumentClient.QueryInput, 'TableName'>;
 type UpdateItemInput = Omit<DynamoDB.DocumentClient.UpdateItemInput, 'TableName'>;
@@ -106,6 +107,33 @@ export const getTableClient = async (userId: string) => {
     }).promise(),
     updateItem: (props: UpdateItemInput) => ddb.update({
       ...props,
+      TableName: TABLE_NAME as string,
+    }).promise(),
+    updateTitle: (userId: string, conversationId: string, newTitle: string) => ddb.update({
+      Key: {
+        UserId: userId,
+        ConversationId: composeConversationId(userId, conversationId),
+      },
+      UpdateExpression: 'set Title = :title',
+      ExpressionAttributeValues: {
+        ':title': newTitle,
+      },
+      ReturnValues: 'UPDATED_NEW',
+      TableName: TABLE_NAME as string,
+    }).promise(),
+    getConversationById: (userId: string, conversationId: string) => ddb.query({
+      IndexName: 'ConversationIdIndex',
+      KeyConditionExpression: 'ConversationId = :conversationId',
+      ExpressionAttributeValues: {
+        ':conversationId': composeConversationId(userId, conversationId),
+      },
+      TableName: TABLE_NAME as string,
+    }).promise(),
+    deleteConversation: (userId: string, conversationId: string) => ddb.delete({
+      Key: {
+        UserId: userId,
+        ConversationId: composeConversationId(userId, conversationId),
+      },
       TableName: TABLE_NAME as string,
     }).promise(),
   };

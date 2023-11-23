@@ -1,5 +1,4 @@
 from app.repositories.conversation import (
-    delete_conversation_by_id,
     delete_conversation_by_user_id,
 )
 from app.route_schema import (
@@ -20,14 +19,6 @@ def post_message(request: Request, chat_input: ChatInput):
 
     output = chat(user_id=current_user.id, chat_input=chat_input)
     return output
-
-
-@router.delete("/v1/conversation/{conversation_id}")
-def delete_conversation(request: Request, conversation_id: str):
-    """Delete conversation history"""
-    current_user: User = request.state.current_user
-
-    delete_conversation_by_id(current_user.id, conversation_id)
 
 
 @router.delete("/v1/conversations")

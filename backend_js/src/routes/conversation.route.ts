@@ -3,7 +3,7 @@ import { getCurrentUser } from '../helper/auth';
 import { getTableClient } from '../helper/conversation-table';
 import { ConversationModel, DdbConversationModel, MessageModel, ProposedTitle } from './../@types/schemas';
 import { RecordNotFoundError } from '../helper/error-handler';
-import { composeConversationId, decomposeConversationId } from './conversations.route';
+import { decomposeConversationId } from './conversations.route';
 import { entries, flow, get, reduce, replace, trim } from 'lodash/fp';
 import { traceToRoot } from '../helper/messages';
 import { getBufferString, invoke } from '../helper/bedrock';
@@ -13,14 +13,7 @@ const router = Router();
 const findConversationById = async (userId: string, conversationId: string): Promise<ConversationModel> => {
   console.log("Finding conversation with ID:", conversationId);
   const table = await getTableClient(userId);
-
-  const response = await table.query({
-    IndexName: 'ConversationIdIndex',
-    KeyConditionExpression: 'ConversationId = :conversationId',
-    ExpressionAttributeValues: {
-      ':conversationId': composeConversationId(userId, conversationId),
-    },
-  });
+  const response = await table.getConversationById(userId, conversationId);
 
   if (!response.Items || response.Items.length == 0)
     throw new RecordNotFoundError(`No conversation found with id: ${conversationId}`);
@@ -95,35 +88,37 @@ const changeConversationTitle = async (userId: string, conversationId: string, n
   console.log("Changing conversation title:", conversationId);
   console.log("New title:", newTitle);
   const table = await getTableClient(userId);
-  const queryResponse = await table.query({
-    IndexName: 'ConversationIdIndex',
-    KeyConditionExpression: 'ConversationId = :conversationId',
-    ExpressionAttributeValues: {
-      ':conversationId': composeConversationId(userId, conversationId),
-    },
-  });
+  const queryResponse = await table.getConversationById(userId, conversationId);
 
   if (!queryResponse.Items || queryResponse.Items.length == 0)
     throw new RecordNotFoundError(`No conversation found with id: ${conversationId}`);
 
-  const item = queryResponse.Items[0];
-  const itemUserId = item.UserId;
-  
-  const updateResponse = await table.updateItem({
-    Key: {
-      UserId: itemUserId,
-      ConversationId: composeConversationId(itemUserId, conversationId),
-    },
-    UpdateExpression: 'set Title = :title',
-    ExpressionAttributeValues: {
-      ':title': newTitle,
-    },
-    ReturnValues: 'UPDATED_NEW',
-  });
+  const updateResponse = await table.updateTitle(flow(
+    get('Items'),
+    get(0),
+    get('UserId'),
+  )(queryResponse), conversationId, newTitle);
 
   console.log("Update response:", updateResponse);
-
   return updateResponse;
+};
+
+const deleteConversationById = async (userId: string, conversationId: string) => {
+  console.log("Deleting conversation:", conversationId);
+  const table = await getTableClient(userId);
+  const queryResponse = await table.getConversationById(userId, conversationId);
+
+  if (!queryResponse.Items || queryResponse.Items.length == 0)
+    throw new RecordNotFoundError(`No conversation found with id: ${conversationId}`);
+
+  const deleteResponse = await table.deleteConversation(flow(
+    get('Items'),
+    get(0),
+    get('UserId'),
+  )(queryResponse), conversationId);
+
+  console.log("Delete response:", deleteResponse);
+  return deleteResponse;
 };
 
 router.get('/:conversationId', async (req: Request, res: Response) => {
@@ -149,7 +144,18 @@ router.patch('/:conversationId/title', async (req: Request, res: Response) => {
   const { newTitle } = req.body;
   console.log(`PATCH /conversation/${conversationId}/title with '${newTitle}'`);
   const currentUser = await getCurrentUser(req.headers);
-  await changeConversationTitle(currentUser.sub, conversationId, newTitle);
+  const response = await changeConversationTitle(currentUser.sub, conversationId, newTitle);
+  console.log("Update response:", response);
+  res.status(200).json(response);
+});
+
+router.delete('/:conversationId', async (req: Request, res: Response) => {
+  const { conversationId } = req.params;
+  console.log(`DELETE /conversation/${conversationId}`);
+  const currentUser = await getCurrentUser(req.headers);
+  const response = await deleteConversationById(currentUser.sub, conversationId);
+  console.log("Delete response:", response);
+  res.status(200).json(response);
 });
 
 export default router;
