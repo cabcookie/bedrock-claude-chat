@@ -1,4 +1,3 @@
-import json
 import logging
 from datetime import datetime
 
@@ -161,42 +160,3 @@ def chat(user_id: str, chat_input: ChatInput) -> ChatOutput:
 
     return output
 
-
-def propose_conversation_title(
-    user_id: str, conversation_id: str, model="claude-instant-v1"
-) -> str:
-    PROMPT = """Reading the conversation above, what is the appropriate title for the conversation? When answering the title, please follow the rules below:
-<rules>
-- Title must be in the same language as the conversation.
-- Title length must be from 15 to 20 characters.
-- Prefer more specific title than general. Your title should always be distinct from others.
-- Return the conversation title only. DO NOT include any strings other than the title.
-</rules>
-"""
-
-    # Fetch existing conversation
-    conversation = find_conversation_by_id(user_id, conversation_id)
-    messages = trace_to_root(
-        node_id=conversation.last_message_id,
-        message_map=conversation.message_map,
-    )
-
-    # Append message to generate title
-    new_message = MessageModel(
-        role="user",
-        content=ContentModel(
-            content_type="text",
-            body=PROMPT,
-        ),
-        model=model,
-        children=[],
-        parent=conversation.last_message_id,
-        create_time=datetime.now().timestamp(),
-    )
-    messages.append(new_message)
-
-    # Invoke Bedrock
-    prompt = get_buffer_string(messages)
-    reply_txt = invoke(prompt=prompt, model=model)
-    reply_txt = reply_txt.replace("\n", "")
-    return reply_txt

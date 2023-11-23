@@ -36,6 +36,15 @@ export class TypeError extends Error {
   }
 }
 
+export class NotImplementedError extends Error {
+  status: number;
+  constructor(message?: string) {
+    super(message || 'Not Implemented');
+    this.name = 'NotImplementedError';
+    this.status = 501; // Not Implemented (RFC 7231, 6.5.6)
+  }
+}
+
 interface IError {
   name: string;
   message: string;

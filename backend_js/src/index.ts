@@ -9,10 +9,8 @@ app.use(express.json());
 app.use(async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.log('Lamba invoked...');
   console.log('Request:', req.method, req.path);
-  console.log('Request body:', req.body);
-  console.log('Request query:', req.query);
-  console.log('Request params:', req.params);
   console.log('Request headers:', req.headers);
+  console.log('Request body:', req.body);
 
   const allowedOrigins = process.env.CORS_ALLOW_ORIGINS || '*';
   res.header('Access-Control-Allow-Origin', allowedOrigins);

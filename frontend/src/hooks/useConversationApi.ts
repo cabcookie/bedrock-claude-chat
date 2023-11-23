@@ -46,7 +46,7 @@ const useConversationApi = () => {
     updateTitleWithGeneratedTitle: async (conversationId: string) => {
       const res = await http.getOnce<{
         title: string;
-      }>(`v1/conversation/${conversationId}/proposed-title`);
+      }>(`v2/conversation/${conversationId}/proposed-title`);    
       return updateTitle(conversationId, res.data.title);
     },
     mutateConversations: (

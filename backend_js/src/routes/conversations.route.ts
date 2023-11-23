@@ -11,7 +11,7 @@ export const decomposeConversationId = (str: string) => str.split("_")[1] as str
 export const composeConversationId = (userId: string, conversationId: string) =>
   `${userId}_${conversationId}` as string;
 
-const findConversationByUserId = async (userId: string): Promise<Array<ConversationMeta> | undefined> => {
+const findConversationByUserId = async (userId: string): Promise<Array<ConversationMeta>> => {
   console.log("Finding conversations for user:", userId);
 
   const table = await getTableClient(userId);
@@ -23,10 +23,10 @@ const findConversationByUserId = async (userId: string): Promise<Array<Conversat
   });
 
   console.log("Response:", response);
-  if (!response)
+  if (!response || !response.Items)
     throw new RecordNotFoundError('Conversations not found');
 
-  return response.Items?.map((item): ConversationMeta => ({
+  return response.Items.map((item): ConversationMeta => ({
     id: decomposeConversationId(item.ConversationId),
     title: item.Title as string,
     createTime: Number(item.CreateTime),

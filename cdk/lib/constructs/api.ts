@@ -101,6 +101,20 @@ export class Api extends Construct {
       role: handlerRole,
     });
 
+    // const handlerBedrockTest =
+    // new NodejsFunction(this, "HandlerBedrockTest", {
+    //   runtime: Runtime.NODEJS_16_X,
+    //   entry: path.join(__dirname, "../../../bedrock-test/src/index.ts"),
+    //   logRetention: 7,
+    //   handler: "handler",
+    //   memorySize: 256,
+    //   timeout: Duration.seconds(30),
+    //   environment: {
+    //     BEDROCK_REGION: props.bedrockRegion,
+    //   },
+    //   role: handlerRole,
+    // });
+
     const integrationJs = new HttpLambdaIntegration("Integration", handlerJs);
   
     const api = new HttpApi(this, "Default", {

@@ -28,7 +28,7 @@ def get_buffer_string(conversations: dict[str, MessageModel]) -> str:
             message = f"{prefix}{conversation.content.body}"
             string_messages.append(message)
 
-    # 最後のメッセージがユーザーからのものである場合、prefixを追加します。
+    # If the last message is from the user, add a prefix.
     # Ref: https://docs.anthropic.com/claude/docs/introduction-to-prompt-design#human--assistant-formatting
     if conversations[-1].role == "user":
         string_messages.append("Assistant: ")

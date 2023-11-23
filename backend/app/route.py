@@ -7,10 +7,9 @@ from app.route_schema import (
     ChatInput,
     ChatOutput,
     NewTitleInput,
-    ProposedTitle,
     User,
 )
-from app.usecase import chat, propose_conversation_title
+from app.usecase import chat
 from fastapi import APIRouter, Request
 
 router = APIRouter()
@@ -52,13 +51,3 @@ def update_conversation_title(
         current_user.id, conversation_id, new_title_input.new_title
     )
 
-
-@router.get(
-    "/v1/conversation/{conversation_id}/proposed-title", response_model=ProposedTitle
-)
-def get_proposed_title(request: Request, conversation_id: str):
-    """Suggest conversation title"""
-    current_user: User = request.state.current_user
-
-    title = propose_conversation_title(current_user.id, conversation_id)
-    return ProposedTitle(title=title)

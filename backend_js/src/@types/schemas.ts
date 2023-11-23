@@ -1,3 +1,9 @@
+export type SupportedModels = 'claude-v2' | 'claude-instant-v1';
+
+export type SupportedModelArns = 'anthropic.claude-v2' | 'anthropic.claude-instant-v1';
+
+export type ModelInvokeBody = { [key in SupportedModelArns]: any };
+
 export interface BaseSchema {
   id?: string;
   name?: string;
@@ -32,11 +38,17 @@ export interface MessageModel extends BaseSchema {
   createTime?: number;
 }
 
+export interface MessageMap {
+  [key: string]: MessageModel;
+}
+
 export interface ConversationModel extends ConversationMetaModel {
-  messageMap: {
-    [key: string]: MessageModel;
-  };
+  messageMap: MessageMap;
   lastMessageId: string;
+}
+
+export type ProposedTitle = {
+  title: string;
 }
 
 export interface DdbConversationModel {
