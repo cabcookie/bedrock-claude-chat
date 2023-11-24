@@ -58,3 +58,30 @@ export interface DdbConversationModel {
   LastMessageId: string;
   MessageMap: string;
 }
+
+export interface MessageInput {
+  role: string;
+  content: ContentModel;
+  model: SupportedModels;
+  parentMessageId: string | null;
+}
+
+export interface MessageOutput {
+  role: string;
+  content: ContentModel;
+  // NOTE: "claude" will be deprecated (same as "claude-v2")
+  model: SupportedModels | 'claude';
+  children: Array<string>;
+  parent: string | null;
+}
+
+export interface ChatInput {
+  conversationId: string;
+  message: MessageInput;
+}
+
+export interface ChatOutput {
+  conversationId: string;
+  message: MessageOutput;
+  createTime: number;
+}

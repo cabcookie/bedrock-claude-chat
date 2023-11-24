@@ -1,5 +1,7 @@
 import { DynamoDB, STS } from 'aws-sdk';
 import { composeConversationId } from '../routes/conversations.route';
+import { ConversationModel, MessageMap } from '../@types/schemas';
+import { entries, flow, reduce } from 'lodash/fp';
 
 type QueryInput = Omit<DynamoDB.DocumentClient.QueryInput, 'TableName'>;
 type UpdateItemInput = Omit<DynamoDB.DocumentClient.UpdateItemInput, 'TableName'>;
@@ -136,5 +138,27 @@ export const getTableClient = async (userId: string) => {
       },
       TableName: TABLE_NAME as string,
     }).promise(),
+    putItem: (userId: string, conversation: ConversationModel) => {
+      const item = {
+        UserId: userId,
+        ConversationId: composeConversationId(userId, conversation.id),
+        Title: conversation.title,
+        CreateTime: conversation.createTime,
+        LastMessageId: conversation.lastMessageId,
+        MessageMap: flow(
+          entries,
+          reduce((acc, [k, v]) => {
+            acc[k] = v;
+            return acc;
+          }, {} as MessageMap),
+          JSON.stringify,
+        )(conversation.messageMap),
+      };
+      console.log("New record to create", item);
+      return ddb.put({
+        Item: item,
+        TableName: TABLE_NAME as string,
+      }).promise();
+    },
   };
 };

@@ -1,12 +1,13 @@
 import { Request, Response, Router } from 'express';
 import { getCurrentUser } from '../helper/auth';
 import { getTableClient } from '../helper/conversation-table';
-import { ConversationModel, DdbConversationModel, MessageModel, ProposedTitle } from './../@types/schemas';
+import { ChatInput, ChatOutput, ConversationModel, DdbConversationModel, MessageMap, MessageModel, MessageOutput, ProposedTitle } from './../@types/schemas';
 import { RecordNotFoundError } from '../helper/error-handler';
 import { decomposeConversationId } from './conversations.route';
 import { entries, flow, get, reduce, replace, trim } from 'lodash/fp';
 import { traceToRoot } from '../helper/messages';
 import { getBufferString, invoke } from '../helper/bedrock';
+import { v4 as uuidv4 } from 'uuid';
 
 const router = Router();
 
@@ -39,7 +40,7 @@ const findConversationById = async (userId: string, conversationId: string): Pro
           parent: v.parent,
         };
         return acc;
-      }, {} as {[key: string]: MessageModel})
+      }, {} as MessageMap)
     )(item),
     lastMessageId: item.LastMessageId,
   };
@@ -121,6 +122,121 @@ const deleteConversationById = async (userId: string, conversationId: string) =>
   return deleteResponse;
 };
 
+const prepareConversation = async (userId: string, chatInput: ChatInput) => {
+  let conversation: ConversationModel;
+  let parentId: string | null;
+
+  try {
+    conversation = await findConversationById(userId, chatInput.conversationId);
+    console.log("Found conversation:", conversation);
+    parentId = chatInput.message.parentMessageId;
+  
+  } catch (error) {
+    if (!(error instanceof RecordNotFoundError))
+      throw error;
+    
+    console.log(`No conversation found with id: ${chatInput.conversationId}. Creating new conversation.`);
+    conversation = {
+      id: chatInput.conversationId,
+      title: 'New conversation',
+      createTime: Date.now(),
+      lastMessageId: '',
+      messageMap: {
+        system: {
+          role: 'system',
+          content: {
+            contentType: 'text',
+            body: '',
+          },
+          model: chatInput.message.model,
+          children: [],
+          parent: null,
+          createTime: Date.now(),
+        } as MessageModel,
+      },
+    } as ConversationModel;
+    parentId = 'system';
+  }
+
+  const messageId = uuidv4();
+  conversation.messageMap[messageId] = {
+    role: chatInput.message.role,
+    content: {
+      contentType: chatInput.message.content.contentType,
+      body: chatInput.message.content.body,
+    },
+    model: chatInput.message.model,
+    children: [],
+    parent: parentId,
+    createTime: Date.now(),
+  };
+
+  if (chatInput.message.parentMessageId && conversation.messageMap[chatInput.message.parentMessageId]) {
+    conversation.messageMap[chatInput.message.parentMessageId].children.push(messageId);
+  }
+
+  return {
+    messageId,
+    conversation,
+  }
+}
+
+const storeConversation = async (userId: string, conversation: ConversationModel) => {
+  console.log("Storing conversation:", conversation);
+  const table = await getTableClient(userId);
+  const response = await table.putItem(userId, conversation);
+  console.log("Response:", response);
+  return response;
+}
+
+const chat = async (userId: string, chatInput: ChatInput): Promise<ChatOutput> => {
+  const { messageId, conversation} = await prepareConversation(userId, chatInput);
+  const messages = traceToRoot(chatInput.message.parentMessageId as string, conversation.messageMap);
+  messages.push({
+    ...chatInput.message,
+    children: [],
+    parent: null,
+  });
+
+  const prompt = getBufferString(messages);
+  const replyText = await invoke(prompt, chatInput.message.model);
+  const assistantMsgId = uuidv4();
+  const message = {
+    role: 'assistant',
+    content: {
+      contentType: 'text',
+      body: replyText,
+    },
+    model: chatInput.message.model,
+    children: [],
+    parent: messageId,
+    createTime: Date.now(),
+  } as MessageModel;
+  conversation.messageMap[assistantMsgId] = message;
+
+  conversation.messageMap[messageId].children.push(assistantMsgId);
+  conversation.lastMessageId = assistantMsgId;
+
+  await storeConversation(userId, conversation);
+
+  const output: ChatOutput = {
+    conversationId: conversation.id,
+    createTime: conversation.createTime,
+    message: {
+      role: message.role,
+      content: {
+        contentType: message.content.contentType,
+        body: message.content.body,
+      },
+      model: message.model,
+      children: message.children,
+      parent: message.parent,
+    } as MessageOutput,
+  };
+
+  return output;
+};
+
 router.get('/:conversationId', async (req: Request, res: Response) => {
   const { conversationId } = req.params;
   console.log(`GET /conversation/${conversationId}`);
@@ -156,6 +272,15 @@ router.delete('/:conversationId', async (req: Request, res: Response) => {
   const response = await deleteConversationById(currentUser.sub, conversationId);
   console.log("Delete response:", response);
   res.status(200).json(response);
+});
+
+router.post('/:conversationId', async (req: Request, res: Response) => {
+  const { chatInput } = req.body;
+  console.log(`POST /conversation with ${JSON.stringify(chatInput)}`);
+  const currentUser = await getCurrentUser(req.headers);
+  const output = await chat(currentUser.sub, chatInput);
+  console.log("Output", output);
+  res.status(200).json(output);
 });
 
 export default router;
