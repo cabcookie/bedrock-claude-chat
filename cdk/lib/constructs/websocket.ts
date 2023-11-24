@@ -35,18 +35,11 @@ export class WebSocket extends Construct {
       displayName: "WebSocketTopic",
     });
 
-    // const publisherJs = new NodejsFunction(this, "PublisherJs", {
-    //   entry: path.join(__dirname, "../../../backend/publisher"),
-    //   runtime: Runtime.NODEJS_16_X,
-    //   environment: {
-    //     WEBSOCKET_TOPIC_ARN: topic.topicArn,
-    //   },
-    // });
-    // topic.grantPublish(publisherJs);
-
-    const publisher = new python.PythonFunction(this, "Publisher", {
-      entry: path.join(__dirname, "../../../backend_python/publisher"),
-      runtime: Runtime.PYTHON_3_11,
+    const publisher = new NodejsFunction(this, "PublisherJs", {
+      runtime: Runtime.NODEJS_16_X,
+      entry: path.join(__dirname, "../../../backend/publisher/src/index.ts"),
+      logRetention: 7,
+      handler: "handler",
       environment: {
         WEBSOCKET_TOPIC_ARN: topic.topicArn,
       },
