@@ -1,6 +1,6 @@
 import { Construct } from "constructs";
 import { Certificate, CertificateValidation } from "aws-cdk-lib/aws-certificatemanager";
-import { HostedZone, PublicHostedZone } from "aws-cdk-lib/aws-route53";
+import { PublicHostedZone } from "aws-cdk-lib/aws-route53";
 import { CfnOutput } from "aws-cdk-lib";
 
 export interface DomainCertificateProps {
@@ -32,9 +32,6 @@ export class DomainCertificate extends Construct {
       validation: CertificateValidation.fromDns(),
     });
     this.domainCertificate = certificate;
-    this.certificateArn = new CfnOutput(this, "CertificateArn", {
-      value: certificate.certificateArn,
-    });
 
   }
 }

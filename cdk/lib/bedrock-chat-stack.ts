@@ -36,7 +36,7 @@ export class BedrockChatStack extends Stack {
 
     const backendApi = new Api(this, "BackendApi", {
       database: database.table,
-      domainAlias: props.domainAlias?.alias,
+      domainAlias: props.domainAlias,
       auth,
       bedrockRegion: props.bedrockRegion,
       tableAccessRole: database.tableAccessRole,

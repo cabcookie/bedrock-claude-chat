@@ -3,25 +3,25 @@ import { CfnOutput, Duration } from "aws-cdk-lib";
 import { ITable } from "aws-cdk-lib/aws-dynamodb";
 import { HttpLambdaIntegration } from "@aws-cdk/aws-apigatewayv2-integrations-alpha";
 import { HttpUserPoolAuthorizer } from "@aws-cdk/aws-apigatewayv2-authorizers-alpha";
-import { DockerImageCode, DockerImageFunction, Runtime } from "aws-cdk-lib/aws-lambda";
+import { Runtime } from "aws-cdk-lib/aws-lambda";
 import {
   CorsHttpMethod,
   HttpApi,
   HttpMethod,
 } from "@aws-cdk/aws-apigatewayv2-alpha";
 import { Auth } from "./auth";
-import { Platform } from "aws-cdk-lib/aws-ecr-assets";
 import { Stack } from "aws-cdk-lib";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as path from "path";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
+import { DomainAliasProps } from "./frontend";
 
 export interface ApiProps {
   readonly database: ITable;
   readonly corsAllowOrigins?: string[];
   readonly auth: Auth;
   readonly bedrockRegion: string;
-  readonly domainAlias?: string;
+  readonly domainAlias?: DomainAliasProps;
   readonly tableAccessRole: iam.IRole;
 }
 
@@ -34,6 +34,7 @@ export class Api extends Construct {
       database,
       tableAccessRole,
       corsAllowOrigins: allowOrigins = ["*"],
+      domainAlias,
     } = props;
 
     const handlerRole = new iam.Role(this, "HandlerRole", {
@@ -58,29 +59,6 @@ export class Api extends Construct {
       )
     );
 
-    const handler = new DockerImageFunction(this, "Handler", {
-      code: DockerImageCode.fromImageAsset(
-        path.join(__dirname, "../../../backend_python"),
-        {
-          platform: Platform.LINUX_AMD64,
-          file: "Dockerfile",
-        }
-      ),
-      memorySize: 256,
-      timeout: Duration.seconds(30),
-      environment: {
-        TABLE_NAME: database.tableName,
-        CORS_ALLOW_ORIGINS: allowOrigins.join(","),
-        USER_POOL_ID: props.auth.userPool.userPoolId,
-        CLIENT_ID: props.auth.client.userPoolClientId,
-        ACCOUNT: Stack.of(this).account,
-        REGION: Stack.of(this).region,
-        BEDROCK_REGION: props.bedrockRegion,
-        TABLE_ACCESS_ROLE_ARN: tableAccessRole.roleArn,
-      },
-      role: handlerRole,
-    });
-
     const handlerJs = new NodejsFunction(this, "HandlerJs", {
       runtime: Runtime.NODEJS_16_X,
       entry: path.join(__dirname, "../../../backend/api/src/index.ts"),
@@ -101,20 +79,6 @@ export class Api extends Construct {
       role: handlerRole,
     });
 
-    // const handlerBedrockTest =
-    // new NodejsFunction(this, "HandlerBedrockTest", {
-    //   runtime: Runtime.NODEJS_16_X,
-    //   entry: path.join(__dirname, "../../../bedrock-test/src/index.ts"),
-    //   logRetention: 7,
-    //   handler: "handler",
-    //   memorySize: 256,
-    //   timeout: Duration.seconds(30),
-    //   environment: {
-    //     BEDROCK_REGION: props.bedrockRegion,
-    //   },
-    //   role: handlerRole,
-    // });
-
     const integrationJs = new HttpLambdaIntegration("Integration", handlerJs);
   
     const api = new HttpApi(this, "Default", {
@@ -134,7 +98,6 @@ export class Api extends Construct {
       },
     });
 
-    const integration = new HttpLambdaIntegration("Integration", handler);
     const authorizer = new HttpUserPoolAuthorizer(
       "Authorizer",
       props.auth.userPool,
@@ -142,19 +105,6 @@ export class Api extends Construct {
         userPoolClients: [props.auth.client],
       }
     );
-
-    api.addRoutes({
-      path: "/v1/{proxy+}",
-      integration,
-      methods: [
-        HttpMethod.GET,
-        HttpMethod.POST,
-        HttpMethod.PUT,
-        HttpMethod.PATCH,
-        HttpMethod.DELETE,
-      ],
-      authorizer,
-    });
 
     api.addRoutes({
       path: "/v2/{proxy+}",
