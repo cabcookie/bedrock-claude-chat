@@ -53,6 +53,7 @@ cdk bootstrap aws://<account id>/us-east-1
 
   - `bedrockRegion`: Region where Bedrock is available. **NOTE: Bedrock does NOT support all regions for now.**
   - `domainAlias`: Provide a domain name like `chat.myorganization.com`. Please be aware that you need to adjust certain DNS settings with your domain provider (see more details below). Please refer to [Setting up a domain alias](#setting-up-a-domain-alias) for more details
+  - `hostedByRoute53`: If you have set up a hosted zone in Route 53 for your domain (like `myorganization.com`) you can let Route 53 manage the domain for the web frontend as well as for the API endpoints,
   - `allowedIpV4AddressRanges`, `allowedIpV6AddressRanges`: Allowed IP Address range.
 
 - Deploy this sample project

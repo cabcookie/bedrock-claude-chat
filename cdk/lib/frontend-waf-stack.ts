@@ -9,6 +9,7 @@ interface FrontendWafStackProps extends StackProps {
   readonly allowedIpV4AddressRanges: string[];
   readonly allowedIpV6AddressRanges: string[];
   readonly domainAlias?: string;
+  readonly managedByRoute53?: string;
 }
 
 /**
@@ -38,6 +39,7 @@ export class FrontendWafStack extends Stack {
 
     const certificate = !props.domainAlias ? undefined : new DomainCertificate(this, 'CustomDomainCert', {
       domainAlias: props.domainAlias,
+      managedByRoute53: props.managedByRoute53,
     });
 
     const webAcl = new wafv2.CfnWebACL(this, "WebAcl", {

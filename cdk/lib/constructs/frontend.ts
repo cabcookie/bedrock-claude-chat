@@ -14,10 +14,13 @@ import {
 import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
 import { NodejsBuild } from "deploy-time-build";
 import { Auth } from "./auth";
+import { ARecord, HostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
+import { CloudFrontTarget } from "aws-cdk-lib/aws-route53-targets";
 
 export type DomainAliasProps = {
   alias: string;
   certificate: Certificate;
+  managedByRoute53: string;
 };
 
 export interface FrontendProps {
@@ -78,6 +81,15 @@ export class Frontend extends Construct {
       },
       webACLId: props.webAclId,
     });
+
+    if (props.domainAlias?.managedByRoute53) {
+      const zone = HostedZone.fromLookup(this, 'Zone', { domainName: props.domainAlias.managedByRoute53 });
+      new ARecord(this, 'FrontendAlias', {
+        zone,
+        recordName: props.domainAlias.alias,
+        target: RecordTarget.fromAlias(new CloudFrontTarget(distribution)),
+      });
+    }
 
     new NodejsBuild(this, "ReactBuild", {
       assets: [{
