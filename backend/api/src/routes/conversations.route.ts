@@ -1,7 +1,7 @@
 import { Request, Response, Router } from 'express';
 import { getCurrentUser } from '../helper/auth';
 import { getTableClient } from '../helper/conversation-table';
-import { ConversationMeta } from './../@types/schemas';
+import { ConversationMeta } from '../@types/schemas';
 import { RecordNotFoundError } from '../helper/error-handler';
 
 const router = Router();

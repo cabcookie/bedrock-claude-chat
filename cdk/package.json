@@ -5,7 +5,9 @@
     "cdk": "bin/cdk.js"
   },
   "scripts": {
-    "predeploy": "cd ../backend_js && npm ci",
+    "predeploy:api": "cd ../backend/api && npm ci",
+    "predeploy:publisher": "cd ../backend/publisher && npm ci",
+    "predeploy": "npm run predeploy:api && npm run predeploy:publisher",
     "deploy": "cdk deploy --all",
     "build": "tsc",
     "watch": "tsc -w",

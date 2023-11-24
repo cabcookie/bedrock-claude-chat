@@ -32,7 +32,7 @@ const useConversationApi = () => {
       );
     },
     postMessage: (input: PostMessageRequest) => {
-      return http.post<PostMessageResponse>('v1/conversation', {
+      return http.post<PostMessageResponse>('v2/conversation', {
         ...input,
       });
     },
@@ -56,7 +56,7 @@ const useConversationApi = () => {
         | MutatorCallback<ConversationMeta[]>,
       options?: Parameters<typeof mutate>[2]
     ) => {
-      return mutate('v1/conversations', conversations, options);
+      return mutate('v2/conversations', conversations, options);
     },
   };
 };

@@ -2,7 +2,7 @@
 
 ## Backend Development
 
-See [backend/README](../backend/README.md).
+See [backend_python/README](../backend_python/README.md).
 
 ## Frontend Development
 

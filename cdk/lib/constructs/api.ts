@@ -60,7 +60,7 @@ export class Api extends Construct {
 
     const handler = new DockerImageFunction(this, "Handler", {
       code: DockerImageCode.fromImageAsset(
-        path.join(__dirname, "../../../backend"),
+        path.join(__dirname, "../../../backend_python"),
         {
           platform: Platform.LINUX_AMD64,
           file: "Dockerfile",
@@ -83,7 +83,7 @@ export class Api extends Construct {
 
     const handlerJs = new NodejsFunction(this, "HandlerJs", {
       runtime: Runtime.NODEJS_16_X,
-      entry: path.join(__dirname, "../../../backend_js/src/index.ts"),
+      entry: path.join(__dirname, "../../../backend/api/src/index.ts"),
       logRetention: 7,
       handler: "handler",
       memorySize: 256,

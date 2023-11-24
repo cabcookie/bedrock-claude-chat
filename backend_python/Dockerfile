@@ -3,7 +3,7 @@ FROM public.ecr.aws/docker/library/python:3.11.6-slim-bullseye
 # Install lambda web adapter
 COPY --from=public.ecr.aws/awsguru/aws-lambda-adapter:0.7.0 /lambda-adapter /opt/extensions/lambda-adapter
 
-WORKDIR /backend
+WORKDIR /backend_python
 
 COPY ./requirements.txt ./
 RUN pip3 install -r requirements.txt --no-cache-dir

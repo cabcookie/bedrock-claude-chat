@@ -145,7 +145,7 @@ It's an architecture built on AWS managed services, eliminating the need for inf
 
 ### Configure text generation parameters
 
-Edit [config.ts](./backend_js/src/config.ts) and run `cdk deploy`.
+Edit [config.ts](./backend/api/src/config.ts) and run `cdk deploy`.
 
 ```typescript
 export const GENERAL_CONFIG = {

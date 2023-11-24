@@ -13,6 +13,7 @@ import { SnsEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
 import { Auth } from "./auth";
 import { ITable } from "aws-cdk-lib/aws-dynamodb";
 import { CfnRouteResponse } from "aws-cdk-lib/aws-apigatewayv2";
+import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 
 export interface WebSocketProps {
   readonly database: ITable;
@@ -34,8 +35,17 @@ export class WebSocket extends Construct {
       displayName: "WebSocketTopic",
     });
 
+    // const publisherJs = new NodejsFunction(this, "PublisherJs", {
+    //   entry: path.join(__dirname, "../../../backend/publisher"),
+    //   runtime: Runtime.NODEJS_16_X,
+    //   environment: {
+    //     WEBSOCKET_TOPIC_ARN: topic.topicArn,
+    //   },
+    // });
+    // topic.grantPublish(publisherJs);
+
     const publisher = new python.PythonFunction(this, "Publisher", {
-      entry: path.join(__dirname, "../../../backend/publisher"),
+      entry: path.join(__dirname, "../../../backend_python/publisher"),
       runtime: Runtime.PYTHON_3_11,
       environment: {
         WEBSOCKET_TOPIC_ARN: topic.topicArn,
@@ -67,7 +77,7 @@ export class WebSocket extends Construct {
     );
     const handler = new DockerImageFunction(this, "Handler", {
       code: DockerImageCode.fromImageAsset(
-        path.join(__dirname, "../../../backend"),
+        path.join(__dirname, "../../../backend_python"),
         {
           platform: Platform.LINUX_AMD64,
           file: "websocket.Dockerfile",

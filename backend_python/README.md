@@ -6,7 +6,7 @@ Written in Python with [FastAPI](https://fastapi.tiangolo.com/).
 - Create virtual environment on your local machine
 
 ```
-cd backend
+cd backend_python
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r ./requirements.txt

@@ -1,7 +1,7 @@
 import { Request, Response, Router } from 'express';
 import { getCurrentUser } from '../helper/auth';
 import { getTableClient } from '../helper/conversation-table';
-import { ChatInput, ChatOutput, ConversationModel, DdbConversationModel, MessageMap, MessageModel, MessageOutput, ProposedTitle } from './../@types/schemas';
+import { ChatInput, ChatOutput, ConversationModel, DdbConversationModel, MessageMap, MessageModel, MessageOutput, ProposedTitle } from '../@types/schemas';
 import { RecordNotFoundError } from '../helper/error-handler';
 import { decomposeConversationId } from './conversations.route';
 import { entries, flow, get, reduce, replace, trim } from 'lodash/fp';

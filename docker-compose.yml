@@ -17,7 +17,7 @@ services:
 
   api:
     build:
-      context: backend
+      context: backend_python
       dockerfile: Dockerfile
     command: uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
     ports:
@@ -31,7 +31,7 @@ services:
       #AWS_SECRET_ACCESS_KEY: XXXX
     volumes:
       - "~/.aws:/root/.aws" # ローカルのクレデンシャルの利用に必要
-      - "./backend/app:/backend/app"
+      - "./backend_python/app:/backend_python/app"
     depends_on:
       - dynamodb-local
 
