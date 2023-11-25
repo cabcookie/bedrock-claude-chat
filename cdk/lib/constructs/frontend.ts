@@ -15,25 +15,25 @@ import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
 import { NodejsBuild } from "deploy-time-build";
 import { Auth } from "./auth";
 import { ARecord, HostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
+import { CustomDomainProps } from "./custom-domain";
 import { CloudFrontTarget } from "aws-cdk-lib/aws-route53-targets";
 
-export type DomainAliasProps = {
-  alias: string;
+export interface FrontendDomainProps extends CustomDomainProps {
   certificate: Certificate;
-  managedByRoute53: string;
-};
+  hostedZone?: HostedZone;
+}
 
 export interface FrontendProps {
   readonly backendApiEndpoint: string;
   readonly webSocketApiEndpoint: string;
-  readonly domainAlias?: DomainAliasProps;
+  readonly customDomain?: FrontendDomainProps;
   readonly auth: Auth;
   readonly accessLogBucket: IBucket;
   readonly webAclId: string;
 }
 
 export class Frontend extends Construct {
-  readonly cloudFrontWebDistribution: CloudFrontWebDistribution;
+  readonly frontEndUrl: string;
 
   constructor(scope: Construct, id: string, props: FrontendProps) {
     super(scope, id);
@@ -50,11 +50,13 @@ export class Frontend extends Construct {
       this,
       "OriginAccessIdentity"
     );
+
+    let viewerCertificate: ViewerCertificate | undefined
+    if (props.customDomain?.certificate)
+      viewerCertificate = ViewerCertificate.fromAcmCertificate(props.customDomain.certificate, {aliases: [props.customDomain.name]});
+
     const distribution = new CloudFrontWebDistribution(this, "Distribution", {
-      viewerCertificate: !props.domainAlias ? undefined : ViewerCertificate
-        .fromAcmCertificate(props.domainAlias.certificate, {
-          aliases: [props.domainAlias.alias],
-        }),
+      viewerCertificate,
       originConfigs: [{
         s3OriginSource: {
           s3BucketSource: assetBucket,
@@ -82,15 +84,6 @@ export class Frontend extends Construct {
       webACLId: props.webAclId,
     });
 
-    if (props.domainAlias?.managedByRoute53) {
-      const zone = HostedZone.fromLookup(this, 'Zone', { domainName: props.domainAlias.managedByRoute53 });
-      new ARecord(this, 'FrontendAlias', {
-        zone,
-        recordName: props.domainAlias.alias,
-        target: RecordTarget.fromAlias(new CloudFrontTarget(distribution)),
-      });
-    }
-
     new NodejsBuild(this, "ReactBuild", {
       assets: [{
         path: "../frontend",
@@ -111,6 +104,15 @@ export class Frontend extends Construct {
       outputSourceDirectory: "dist",
     });
 
-    this.cloudFrontWebDistribution = distribution;
+    this.frontEndUrl = distribution.distributionDomainName;
+    if (props.customDomain) {
+      this.frontEndUrl = `https://${props.customDomain.name}`;
+      if (props.customDomain.hostedZone)
+        new ARecord(this, "FrontendAlias", {
+          zone: props.customDomain.hostedZone,
+          recordName: props.customDomain.name,
+          target: RecordTarget.fromAlias(new CloudFrontTarget(distribution)),
+        });
+    }
   }
 }

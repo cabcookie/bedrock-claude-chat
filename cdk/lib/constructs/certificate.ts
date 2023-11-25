@@ -1,11 +1,11 @@
 import { Construct } from "constructs";
 import { Certificate, CertificateValidation } from "aws-cdk-lib/aws-certificatemanager";
-import { PublicHostedZone } from "aws-cdk-lib/aws-route53";
+import { HostedZone } from "aws-cdk-lib/aws-route53";
 import { CfnOutput } from "aws-cdk-lib";
 
 export interface DomainCertificateProps {
   readonly domainAlias: string;
-  readonly managedByRoute53?: string;
+  readonly hostedZone?: HostedZone;
 }
 
 export class DomainCertificate extends Construct {
@@ -15,12 +15,6 @@ export class DomainCertificate extends Construct {
   constructor(scope: Construct, id: string, props: DomainCertificateProps) {
     super(scope, id);
 
-    if (props.managedByRoute53) {
-      new PublicHostedZone(this, 'HostedZone', {
-        zoneName: props.managedByRoute53,
-      });
-    }
-
     // This step is critical as it will halt the deployment process until you input the relevant CNAME records via your domain registrar.
     // Please ensure that you visit the following link: https://us-east-1.console.aws.amazon.com/acm/home?region=us-east-1#/certificates
     // Here, you can find the specific CNAME records that need to be incorporated.
@@ -28,8 +22,9 @@ export class DomainCertificate extends Construct {
     // https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_cloudfront-readme.html#domain-names-and-certificates
     const certificate = new Certificate(scope, `${id}Cert`, {
       certificateName: `${id}Certificate`,
+      subjectAlternativeNames: [`*.${props.domainAlias}`],
       domainName: props.domainAlias,
-      validation: CertificateValidation.fromDns(),
+      validation: CertificateValidation.fromDns(props.hostedZone),
     });
     this.domainCertificate = certificate;
 

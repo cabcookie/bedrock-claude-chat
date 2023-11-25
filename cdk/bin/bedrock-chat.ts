@@ -3,7 +3,6 @@ import "source-map-support/register";
 import * as cdk from "aws-cdk-lib";
 import { BedrockChatStack } from "../lib/bedrock-chat-stack";
 import { FrontendWafStack } from "../lib/frontend-waf-stack";
-import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
 
 const app = new cdk.App();
 
@@ -39,8 +38,6 @@ const waf = new FrontendWafStack(app, `FrontendWafStack`, {
   },
   allowedIpV4AddressRanges: ALLOWED_IP_V4_ADDRESS_RANGES,
   allowedIpV6AddressRanges: ALLOWED_IP_V6_ADDRESS_RANGES,
-  domainAlias: DOMAIN_ALIAS,
-  managedByRoute53: MANAGED_BY_ROUTE53,
 });
 
 new BedrockChatStack(app, `BedrockChatStack`, {
@@ -50,9 +47,8 @@ new BedrockChatStack(app, `BedrockChatStack`, {
   },
   crossRegionReferences: true,
   bedrockRegion: BEDROCK_REGION,
-  domainAlias: !DOMAIN_ALIAS ? undefined : {
-    alias: DOMAIN_ALIAS,
-    certificate: waf.domainCertificate as Certificate,
+  customDomain: {
+    name: DOMAIN_ALIAS,
     managedByRoute53: MANAGED_BY_ROUTE53,
   },
   webAclId: waf.webAclArn.value,
