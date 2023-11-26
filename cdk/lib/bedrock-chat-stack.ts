@@ -58,7 +58,7 @@ export class BedrockChatStack extends Stack {
 
     const frontend = new Frontend(this, "Frontend", {
       backendApiEndpoint: backendApi.apiEndpoint,
-      webSocketApiEndpoint: websocket.deprecatedWebSocketEndpoint,
+      webSocketApiEndpoint: websocket.webSocketEndpoint,
       customDomain: customDomain?.customDomainProps,
       auth,
       accessLogBucket,
@@ -70,9 +70,6 @@ export class BedrockChatStack extends Stack {
     });
     new CfnOutput(this, "BackendApiUrl", {
       value: backendApi.apiEndpoint,
-    });
-    new CfnOutput(this, "DeprecatedWebSocketEndpoint", {
-      value: websocket.deprecatedWebSocketEndpoint,
     });
     new CfnOutput(this, "WebSocketEndpoint", {
       value: websocket.webSocketEndpoint,

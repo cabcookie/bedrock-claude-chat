@@ -1,13 +1,14 @@
 import { Request, Response, Router } from 'express';
-import { getCurrentUser } from '../helper/auth';
+import { getCurrentUserFromRequestHeader } from '../helper/auth';
 import { getTableClient } from '../helper/conversation-table';
 import { ChatInput, ChatOutput, ConversationModel, DdbConversationModel, MessageMap, MessageModel, MessageOutput, ProposedTitle } from '../@types/schemas';
 import { RecordNotFoundError } from '../helper/error-handler';
 import { decomposeConversationId } from './conversations.route';
 import { entries, flow, get, reduce, replace, trim } from 'lodash/fp';
 import { traceToRoot } from '../helper/messages';
-import { getBufferString, invoke } from '../helper/bedrock';
+import { getBufferString, getModelId, invoke, modelInvokeBody } from '../helper/bedrock';
 import { v4 as uuidv4 } from 'uuid';
+import { InvokeModelWithResponseStreamCommandInput } from '@aws-sdk/client-bedrock-runtime';
 
 const router = Router();
 
@@ -122,7 +123,7 @@ const deleteConversationById = async (userId: string, conversationId: string) =>
   return deleteResponse;
 };
 
-const prepareConversation = async (userId: string, chatInput: ChatInput) => {
+export const prepareConversation = async (userId: string, chatInput: ChatInput) => {
   let conversation: ConversationModel;
   let parentId: string | null;
 
@@ -181,7 +182,27 @@ const prepareConversation = async (userId: string, chatInput: ChatInput) => {
   }
 }
 
-const storeConversation = async (userId: string, conversation: ConversationModel) => {
+export const getInvokePayload = (conversation: ConversationModel, chatInput: ChatInput): InvokeModelWithResponseStreamCommandInput => {
+  const messages = traceToRoot(
+    chatInput.message.parentMessageId as string,
+    conversation.messageMap
+  );
+  messages.push({
+    ...chatInput.message,
+    children: [],
+    parent: null,
+  });
+  const prompt = getBufferString(messages);
+  const modelId = getModelId(chatInput.message.model);
+  return {
+    modelId,
+    body: JSON.stringify(modelInvokeBody(prompt)[modelId]),
+    accept: 'application/json',
+    contentType: 'application/json',
+  };
+};
+
+export const storeConversation = async (userId: string, conversation: ConversationModel) => {
   console.log("Storing conversation:", conversation);
   const table = await getTableClient(userId);
   const response = await table.putItem(userId, conversation);
@@ -240,7 +261,7 @@ const chat = async (userId: string, chatInput: ChatInput): Promise<ChatOutput> =
 router.get('/:conversationId', async (req: Request, res: Response) => {
   const { conversationId } = req.params;
   console.log(`GET /conversation/${conversationId}`);
-  const currentUser = await getCurrentUser(req.headers);
+  const currentUser = await getCurrentUserFromRequestHeader(req.headers);
   const conversation = await findConversationById(currentUser.sub, conversationId);
   console.log("Conversation:", conversation);
   res.status(200).json(conversation);
@@ -249,7 +270,7 @@ router.get('/:conversationId', async (req: Request, res: Response) => {
 router.get('/:conversationId/proposed-title', async (req: Request, res: Response) => {
   const { conversationId } = req.params;
   console.log(`GET /conversation/${conversationId}/proposed-title`);
-  const currentUser = await getCurrentUser(req.headers);
+  const currentUser = await getCurrentUserFromRequestHeader(req.headers);
   const title = await proposeConversationTitle(currentUser.sub, conversationId);
   console.log("Proposed title:", title);
   res.status(200).json(title);
@@ -259,7 +280,7 @@ router.patch('/:conversationId/title', async (req: Request, res: Response) => {
   const { conversationId } = req.params;
   const { newTitle } = req.body;
   console.log(`PATCH /conversation/${conversationId}/title with '${newTitle}'`);
-  const currentUser = await getCurrentUser(req.headers);
+  const currentUser = await getCurrentUserFromRequestHeader(req.headers);
   const response = await changeConversationTitle(currentUser.sub, conversationId, newTitle);
   console.log("Update response:", response);
   res.status(200).json(response);
@@ -268,7 +289,7 @@ router.patch('/:conversationId/title', async (req: Request, res: Response) => {
 router.delete('/:conversationId', async (req: Request, res: Response) => {
   const { conversationId } = req.params;
   console.log(`DELETE /conversation/${conversationId}`);
-  const currentUser = await getCurrentUser(req.headers);
+  const currentUser = await getCurrentUserFromRequestHeader(req.headers);
   const response = await deleteConversationById(currentUser.sub, conversationId);
   console.log("Delete response:", response);
   res.status(200).json(response);
@@ -277,7 +298,7 @@ router.delete('/:conversationId', async (req: Request, res: Response) => {
 router.post('/:conversationId', async (req: Request, res: Response) => {
   const { chatInput } = req.body;
   console.log(`POST /conversation with ${JSON.stringify(chatInput)}`);
-  const currentUser = await getCurrentUser(req.headers);
+  const currentUser = await getCurrentUserFromRequestHeader(req.headers);
   const output = await chat(currentUser.sub, chatInput);
   console.log("Output", output);
   res.status(200).json(output);

@@ -23,8 +23,6 @@ const getDocumentClient = async (userId: string, tableName: string): Promise<Dyn
     TABLE_ACCESS_ROLE_ARN,
   } = process.env;
 
-  console.log("getDocumentClient...");
-
   if (!AWS_EXECUTION_ENV) {
     let ddb: DynamoDB.DocumentClient;
     if (DDB_ENDPOINT_URL) {
@@ -80,9 +78,7 @@ const getDocumentClient = async (userId: string, tableName: string): Promise<Dyn
       }],
     }),
   }).promise();
-  console.log("assumedRole", assumedRole);
   const credentials = assumedRole.Credentials as AWS.STS.Credentials;
-  console.log("credentials", credentials);
   const ddb = new DynamoDB.DocumentClient({
     region: REGION,
     credentials: {
@@ -91,7 +87,6 @@ const getDocumentClient = async (userId: string, tableName: string): Promise<Dyn
       sessionToken: credentials.SessionToken,
     },
   });
-  console.log("ddb", ddb);
   return ddb;
 };
 

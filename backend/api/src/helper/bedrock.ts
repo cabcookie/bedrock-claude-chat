@@ -12,7 +12,7 @@ const claudeModelInvokeBody = (prompt: string) => ({
   prompt: `Human: ${prompt}\nAssistant: `,
 });
 
-const modelInvokeBody = (prompt: string): ModelInvokeBody => ({
+export const modelInvokeBody = (prompt: string): ModelInvokeBody => ({
   'anthropic.claude-instant-v1': claudeModelInvokeBody(prompt),
   'anthropic.claude-v2': claudeModelInvokeBody(prompt),
 });
@@ -48,7 +48,7 @@ export const getBufferString = (conversations: MessageModel[]): string => {
 
 type ModelMapping = { [key in SupportedModels]: SupportedModelArns };
 
-const getModelId = (model: SupportedModels): SupportedModelArns => {
+export const getModelId = (model: SupportedModels): SupportedModelArns => {
   // Ref: https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids-arns.html
   if (!['claude-instant-v1', 'claude-v2'].includes(model))
     throw new NotImplementedError(`Model '${model}' is not implemented`);

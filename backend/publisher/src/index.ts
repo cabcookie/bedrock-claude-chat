@@ -1,8 +1,8 @@
-import { APIGatewayEvent, APIGatewayProxyResult } from "aws-lambda";
+import { APIGatewayEvent } from "aws-lambda";
 import { SNS } from "aws-sdk";
 
 const TOPIC_ARN: string = process.env.WEBSOCKET_TOPIC_ARN!;
-const snsClient: SNS = new SNS();
+const snsClient = new SNS();
 
 export const handler = async (event: APIGatewayEvent) => {
   console.log(`Received event: ${JSON.stringify(event)}`);

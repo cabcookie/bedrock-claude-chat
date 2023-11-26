@@ -85,3 +85,7 @@ export interface ChatOutput {
   message: MessageOutput;
   createTime: number;
 }
+
+export interface ChatInputWithToken extends ChatInput {
+  token: string;
+}

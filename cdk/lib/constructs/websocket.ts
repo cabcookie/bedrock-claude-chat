@@ -1,21 +1,17 @@
 import { Construct } from "constructs";
 import * as apigwv2 from "@aws-cdk/aws-apigatewayv2-alpha";
 import { WebSocketLambdaIntegration } from "@aws-cdk/aws-apigatewayv2-integrations-alpha";
-import { DockerImageCode, DockerImageFunction } from "aws-cdk-lib/aws-lambda";
 import * as path from "path";
 import { Runtime } from "aws-cdk-lib/aws-lambda";
 import * as iam from "aws-cdk-lib/aws-iam";
-import { Duration, Stack } from "aws-cdk-lib";
-import { Platform } from "aws-cdk-lib/aws-ecr-assets";
 import * as sns from "aws-cdk-lib/aws-sns";
+import { Duration, Stack } from "aws-cdk-lib";
 import { SnsEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
 import { Auth } from "./auth";
 import { ITable } from "aws-cdk-lib/aws-dynamodb";
 import { CfnRouteResponse } from "aws-cdk-lib/aws-apigatewayv2";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import { FrontendDomainProps } from "./frontend";
-import { ARecord, RecordTarget } from "aws-cdk-lib/aws-route53";
-import { ApiGatewayv2DomainProperties } from "aws-cdk-lib/aws-route53-targets";
 
 export interface WebSocketProps {
   readonly database: ITable;
@@ -34,11 +30,11 @@ export class WebSocket extends Construct {
 
     const { database, tableAccessRole } = props;
 
-    const topic = new sns.Topic(this, "SnsTopic", {
+    const topic = new sns.Topic(this, "Topic", {
       displayName: "WebSocketTopic",
     });
 
-    const publisher = new NodejsFunction(this, "PublisherJs", {
+    const publisher = new NodejsFunction(this, "Publisher", {
       runtime: Runtime.NODEJS_16_X,
       entry: path.join(__dirname, "../../../backend/publisher/src/index.ts"),
       logRetention: 7,
@@ -65,20 +61,17 @@ export class WebSocket extends Construct {
         resources: ["*"],
       })
     );
-
     handlerRole.addManagedPolicy(
       iam.ManagedPolicy.fromAwsManagedPolicyName(
         "service-role/AWSLambdaBasicExecutionRole"
       )
     );
-    const handler = new DockerImageFunction(this, "Handler", {
-      code: DockerImageCode.fromImageAsset(
-        path.join(__dirname, "../../../backend_python"),
-        {
-          platform: Platform.LINUX_AMD64,
-          file: "websocket.Dockerfile",
-        }
-      ),
+
+    const handler = new NodejsFunction(this, "Handler", {
+      runtime: Runtime.NODEJS_16_X,
+      entry: path.join(__dirname, "../../../backend/api/src/websocket.ts"),
+      logRetention: 7,
+      handler: "handler",
       memorySize: 256,
       timeout: Duration.minutes(15),
       environment: {
@@ -92,33 +85,22 @@ export class WebSocket extends Construct {
       },
       role: handlerRole,
     });
-    handler.addEventSource(
-      new SnsEventSource(topic, {
-        filterPolicy: {},
-      })
-    );
-
-    const api = new apigwv2.WebSocketApi(this, "WebSocketApi", {
+    
+    handler.addEventSource(new SnsEventSource(topic, {filterPolicy: {}}));
+    const api = new apigwv2.WebSocketApi(this, "Api", {
       connectRouteOptions: {
-        integration: new WebSocketLambdaIntegration(
-          "ConnectIntegration",
-          publisher
-        ),
+        integration: new WebSocketLambdaIntegration("Connect", publisher),
       },
     });
     const route = api.addRoute("$default", {
-      integration: new WebSocketLambdaIntegration(
-        "DefaultIntegration",
-        publisher
-      ),
+      integration: new WebSocketLambdaIntegration("DefaultInteg", publisher),
     });
-    const stage = new apigwv2.WebSocketStage(this, "WebSocketStage", {
+    const stage = new apigwv2.WebSocketStage(this, "Stage", {
       webSocketApi: api,
       stageName: this.defaultStageName,
       autoDeploy: true,
     });
     api.grantManageConnections(handler);
-
     new CfnRouteResponse(this, "RouteResponse", {
       apiId: api.apiId,
       routeId: route.routeId,
@@ -126,22 +108,22 @@ export class WebSocket extends Construct {
     });
 
     let webSocketEndpoint = api.apiEndpoint;
-    if (props.customDomain) {
-      const alias = 'ws';
-      const domainName = new apigwv2.DomainName(this, "WebSocketDomain", {
-        domainName: `${alias}.${props.customDomain.name}`,
-        certificate: props.customDomain.certificate,
-      });
-      const apiMapping = new apigwv2.ApiMapping(this, "WebSocketMapping", { api, domainName, stage });
-      apiMapping.node.addDependency(domainName);
-      // webSocketEndpoint = `wss://${alias}.${props.customDomain.name}`;
-      if (props.customDomain.hostedZone)
-        new ARecord(this, "WebSocketAlias", {
-          zone: props.customDomain.hostedZone,
-          recordName: alias,
-          target: RecordTarget.fromAlias(new ApiGatewayv2DomainProperties(domainName.regionalDomainName, domainName.regionalHostedZoneId)),
-        });
-    }
+    // if (props.customDomain) {
+    //   const alias = 'ws';
+    //   const domainName = new apigwv2.DomainName(this, "WebSocketDomain", {
+    //     domainName: `${alias}.${props.customDomain.name}`,
+    //     certificate: props.customDomain.certificate,
+    //   });
+    //   const apiMapping = new apigwv2.ApiMapping(this, "WebSocketMapping", { api, domainName, stage });
+    //   apiMapping.node.addDependency(domainName);
+    //   // webSocketEndpoint = `wss://${alias}.${props.customDomain.name}`;
+    //   if (props.customDomain.hostedZone)
+    //     new ARecord(this, "WebSocketAlias", {
+    //       zone: props.customDomain.hostedZone,
+    //       recordName: alias,
+    //       target: RecordTarget.fromAlias(new ApiGatewayv2DomainProperties(domainName.regionalDomainName, domainName.regionalHostedZoneId)),
+    //     });
+    // }
 
     this.webSocketEndpoint = `${webSocketEndpoint}/${this.defaultStageName}`;
   }

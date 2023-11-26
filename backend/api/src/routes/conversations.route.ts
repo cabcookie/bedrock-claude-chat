@@ -1,5 +1,5 @@
 import { Request, Response, Router } from 'express';
-import { getCurrentUser } from '../helper/auth';
+import { getCurrentUserFromRequestHeader } from '../helper/auth';
 import { getTableClient } from '../helper/conversation-table';
 import { ConversationMeta } from '../@types/schemas';
 import { RecordNotFoundError } from '../helper/error-handler';
@@ -53,7 +53,7 @@ const findConversationByUserId = async (userId: string): Promise<Array<Conversat
 
 router.get('/', async (req: Request, res: Response) => {
   console.log("GET /conversations");
-  const currentUser = await getCurrentUser(req.headers);
+  const currentUser = await getCurrentUserFromRequestHeader(req.headers);
   const conversations = await findConversationByUserId(currentUser.sub);
   console.log("Conversations:", conversations);
   res.status(200).json(conversations);
@@ -61,7 +61,7 @@ router.get('/', async (req: Request, res: Response) => {
 
 router.delete('/', async (req: Request, res: Response) => {
   console.log("DELETE /conversations");
-  const currentUser = await getCurrentUser(req.headers);
+  const currentUser = await getCurrentUserFromRequestHeader(req.headers);
   const response = await deleteConversationByUserId(currentUser.sub);
   console.log("Delete response:", response);
   res.status(200).json(response);

@@ -8,6 +8,7 @@ const AdminPage: React.FC = () => {
       </div>
       <div className="mt-4 text-lg">
         You will find settings for the administrator here.
+        Probably some information about how people use the tool.
       </div>
     </div>
   );
