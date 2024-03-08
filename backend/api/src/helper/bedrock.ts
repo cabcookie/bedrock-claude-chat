@@ -26,7 +26,7 @@ const claudeModelInvokeBody = (prompt: string) => ({
 export const modelInvokeBody = (prompt: string): ModelInvokeBody => ({
   "anthropic.claude-instant-v1": claudeModelInvokeBody(prompt),
   "anthropic.claude-v2": claudeModelInvokeBody(prompt),
-  "antrophic.claude-3-sonnet-20240229-v1:0": claudeModelInvokeBody(prompt),
+  "anthropic.claude-3-sonnet-20240229-v1:0": claudeModelInvokeBody(prompt),
 });
 
 const createInvokeCommand = (modelId: SupportedModelArns, prompt: string) =>
@@ -70,7 +70,7 @@ export const getModelId = (model: SupportedModels): SupportedModelArns => {
   const modelMapping: ModelMapping = {
     "claude-instant-v1": "anthropic.claude-instant-v1",
     "claude-v2": "anthropic.claude-v2",
-    "claude-v3-sonnet": "antrophic.claude-3-sonnet-20240229-v1:0",
+    "claude-v3-sonnet": "anthropic.claude-3-sonnet-20240229-v1:0",
   };
   return modelMapping[model];
 };
