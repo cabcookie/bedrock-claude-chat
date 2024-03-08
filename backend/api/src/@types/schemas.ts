@@ -1,6 +1,12 @@
-export type SupportedModels = 'claude-v2' | 'claude-instant-v1';
+export type SupportedModels =
+  | "claude-v2"
+  | "claude-instant-v1"
+  | "claude-v3-sonnet";
 
-export type SupportedModelArns = 'anthropic.claude-v2' | 'anthropic.claude-instant-v1';
+export type SupportedModelArns =
+  | "anthropic.claude-v2"
+  | "anthropic.claude-instant-v1"
+  | "antrophic.claude-3-sonnet-20240229-v1:0";
 
 export type ModelInvokeBody = { [key in SupportedModelArns]: any };
 
@@ -49,7 +55,7 @@ export interface ConversationModel extends ConversationMetaModel {
 
 export type ProposedTitle = {
   title: string;
-}
+};
 
 export interface DdbConversationModel {
   ConversationId: string;
@@ -70,7 +76,7 @@ export interface MessageOutput {
   role: string;
   content: ContentModel;
   // NOTE: "claude" will be deprecated (same as "claude-v2")
-  model: SupportedModels | 'claude';
+  model: SupportedModels | "claude";
   children: Array<string>;
   parent: string | null;
 }

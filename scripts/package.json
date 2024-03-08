@@ -1,0 +1,12 @@
+{
+  "name": "scripts",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "convert": "node png-to-favicon"
+  },
+  "dependencies": {
+    "sharp": "^0.33.2"
+  }
+}

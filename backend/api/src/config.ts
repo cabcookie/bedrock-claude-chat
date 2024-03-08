@@ -3,8 +3,5 @@ export const GENERAL_CONFIG = {
   temperature: 0.6,
   top_k: 250,
   top_p: 0.999,
-  stop_sequences: [
-    "Human: ",
-    "Assistant: ",
-  ],
+  stop_sequences: ["Human: ", "Assistant: "],
 };

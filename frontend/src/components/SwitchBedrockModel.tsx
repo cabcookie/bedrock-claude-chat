@@ -1,5 +1,6 @@
 import { FaBrain } from 'react-icons/fa';
 import { AiFillThunderbolt } from 'react-icons/ai';
+import { FaMicrochip } from 'react-icons/fa6';
 import { BaseProps } from '../@types/common';
 import { Model } from '../@types/conversation';
 import Button from './Button';
@@ -26,7 +27,8 @@ const SwitchBedrockModel: React.FC<Props> = (props) => {
         }`}
         icon={<AiFillThunderbolt />}
         onClick={() => props.setModel('claude-instant-v1')}
-        children={<span>Claude Instant</span>}></Button>
+        children={<span>Claude Instant</span>}
+      />
       <Button
         className={`${buttonClass} ${
           props.model === 'claude-v2'
@@ -35,7 +37,18 @@ const SwitchBedrockModel: React.FC<Props> = (props) => {
         }`}
         icon={<FaBrain />}
         onClick={() => props.setModel('claude-v2')}
-        children={<span>Claude v2</span>}></Button>
+        children={<span>Claude v2</span>}
+      />
+      <Button
+        className={`${buttonClass} ${
+          props.model === 'claude-v3-sonnet'
+            ? 'bg-aws-squid-ink/100 text-white'
+            : 'bg-aws-paper text-gray-500'
+        }`}
+        icon={<FaMicrochip />}
+        onClick={() => props.setModel('claude-v3-sonnet')}
+        children={<span>v3 Sonnet</span>}
+      />
     </div>
   );
 };

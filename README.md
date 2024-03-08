@@ -2,7 +2,7 @@
 
 ![](https://github.com/cabcookie/bedrock-claude-chat/actions/workflows/test.yml/badge.svg)
 
-This repository is a sample chatbot using the Anthropic company's LLM [Claude 2](https://www.anthropic.com/index/claude-2) and [Claude Instant](https://www.anthropic.com/index/releasing-claude-instant-1-2), 2 of the foundational models provided by [Amazon Bedrock](https://aws.amazon.com/bedrock/) for generative AI.
+This repository is a sample chatbot using the Anthropic company's LLM [Claude 3 Sonnet](https://www.anthropic.com/news/claude-3-family), [Claude 2](https://www.anthropic.com/index/claude-2), and [Claude Instant](https://www.anthropic.com/index/releasing-claude-instant-1-2), 3 of the foundational models provided by [Amazon Bedrock](https://aws.amazon.com/bedrock/) for generative AI.
 
 ![](./docs/imgs/demo1.gif)
 
@@ -150,11 +150,11 @@ Edit [config.ts](./backend/api/src/config.ts) and run `cdk deploy`.
 
 ```typescript
 export const GENERAL_CONFIG = {
-    "max_tokens_to_sample": 500,
-    "temperature": 0.6,
-    "top_k": 250,
-    "top_p": 0.999,
-    "stop_sequences": ["Human: ", "Assistant: "],
+  max_tokens_to_sample: 500,
+  temperature: 0.6,
+  top_k: 250,
+  top_p: 0.999,
+  stop_sequences: ["Human: ", "Assistant: "],
 };
 ```
 
