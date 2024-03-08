@@ -6,7 +6,7 @@ export type SupportedModels =
 export type SupportedModelArns =
   | "anthropic.claude-v2"
   | "anthropic.claude-instant-v1"
-  | "antrophic.claude-3-sonnet-20240229-v1:0";
+  | "anthropic.claude-3-sonnet-20240229-v1:0";
 
 export type ModelInvokeBody = { [key in SupportedModelArns]: any };
 
