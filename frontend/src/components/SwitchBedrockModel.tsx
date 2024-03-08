@@ -47,7 +47,7 @@ const SwitchBedrockModel: React.FC<Props> = (props) => {
         }`}
         icon={<FaMicrochip />}
         onClick={() => props.setModel('claude-v3-sonnet')}
-        children={<span>v3 Sonnet</span>}
+        children={<span>v3 Sonnet (WIP)</span>}
       />
     </div>
   );
